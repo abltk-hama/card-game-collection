@@ -50,4 +50,4 @@
 |既存画面の回帰確認|PASS|4ゲーム起動と横幅、ブラウザーerrorログなし|
 |人間のノック／ジン確定操作|NOT_RUN|ブラウザーで確定可能な手札には未到達。エンジンのノック・ジンとAIのノックは検証済み|
 |実機iOS・Android|NOT_RUN|実端末でのタッチ・Safari・Chromeは未確認|
-|更新版のPages公開|PENDING|push後にActionsと公開URLを確認する|
+|更新版のPages公開|PASS|コミットddf4f24、ワークフロー37021954718のbuild・deploy成功。公開URLで5ゲーム一覧とジンラミー起動、ブラウザーerrorログなし|

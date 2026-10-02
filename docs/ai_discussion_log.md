@@ -421,3 +421,8 @@ UNO風ゲームの人数と独自カードを確認し、詳細ルールを整�
 
 ### validation_plan
 実施結果は`docs/validation.md`。実機未確認。公開更新はActionsと公開URLの確認が完了してからPASSと記録する。
+
+### publication_result
+- CODE_FACT: コミットddf4f24をmainへpushし、公開ワークフロー37021954718のbuild・deploy成功。
+- CODE_FACT: https://abltk-hama.github.io/card-game-collection/ で5ゲーム一覧とジンラミー起動を確認。errorログなし。
+- user_validation: スマートフォンでの操作感確認を継続。
