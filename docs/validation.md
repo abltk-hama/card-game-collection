@@ -32,5 +32,5 @@
 |大富豪のブラウザー操作|PASS|2枚選択・確定・弱い組み合わせ無効・選択解除・8切り・AI進行・順位表示・次ラウンド・交換確定|
 |幅360px|PASS|手札13枚と交換画面でdocumentのscrollWidthとclientWidthが一致|
 |既存画面の回帰確認|PASS|本番プレビューで神経衰弱・ババ抜き・カラーマッチ起動、errorログなし|
-|更新版のPages公開|NOT_RUN|pushと公開完了後に更新|
+|更新版のPages公開|PASS|コミット4aabd3e、ワークフロー37007568687のbuild・deploy成功。公開URLで4ゲーム一覧と大富豪起動、errorログなし|
 |実機iOS・Android|NOT_RUN|実機でのタッチ操作は未確認|

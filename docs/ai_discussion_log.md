@@ -328,3 +328,10 @@ UNO風ゲームの人数と独自カードを確認し、詳細ルールを整�
 
 ### validation
 検証詳細はdocs/validation.mdを参照。公開版の更新は現時点でNOT_RUN。
+
+### 大富豪追加版の公開完了
+- CODE_FACT: コミット4aabd3eをmainへpush。
+- PASS: GitHub Actionsワークフロー37007568687のbuild・deploy成功。
+- PASS: 公開URLで4ゲーム一覧と大富豪の起動、errorログなしを確認。
+- NOT_RUN: 実機スマートフォンでのタッチ操作・ゲームの感触。ユーザー確認を待つ。
+- 次の実装案件は未合意。
