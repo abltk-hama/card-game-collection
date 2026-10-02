@@ -426,3 +426,8 @@ UNO風ゲームの人数と独自カードを確認し、詳細ルールを整�
 
 ### validation_plan
 実施結果を`docs/validation.md`へ記録。実機はNOT_RUN。公開成功はActionsと公開URLで確認する。
+
+### publication_result
+- CODE_FACT: コミットdad781aをmainへpush。公開ワークフロー37074085517のbuild・deploy成功。
+- CODE_FACT: 公開URLで6ゲーム一覧と七並べ起動を確認。ブラウザーerrorログなし。
+- user_validation: スマートフォンでの場の読みやすさ・手札操作を確認。

@@ -64,5 +64,5 @@
 |幅360px|PASS|4段13列の場と手札、脱落後でdocumentのscrollWidthとclientWidthが345pxで一致|
 |終了順位のブラウザー表示|PASS|脱落後のAI観戦が終了し、1〜4位とあがり・最後の1人・脱落の区別を表示|
 |既存5ゲーム起動・ブラウザーエラー|PASS|5ゲーム起動・横幅を確認。ブラウザーerrorログなし|
-|更新版のPages公開|PENDING|push後にActionsと公開URLを確認する|
+|更新版のPages公開|PASS|コミットdad781a、ワークフロー37074085517のbuild・deploy成功。公開URLで6ゲーム一覧・七並べ起動、ブラウザーerrorログなし|
 |実機iOS・Android|NOT_RUN|実端末でのタッチ・Safari・Chromeは未確認|
