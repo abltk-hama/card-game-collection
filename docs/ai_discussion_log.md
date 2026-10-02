@@ -2,44 +2,6 @@
 
 直近10件を保持し、超過分は別名の略歴Markdownへ移す。
 
-## 2026-10-02 — 初期設計とテンプレート適用
-
-### topic
-TypeScriptカードゲーム集の初期構成。
-
-### summary
-- CODE_FACT: 初回確認時は.gitのみで、既存ゲームコードはなかった。
-- USER_DECISION: TypeScript、必要な相手はAI、UNO風ゲームに独自効果カード。
-- USER_DECISION: スマートフォンを主対象とし、GitHub Pagesで公開する。
-- USER_DECISION: Projectテンプレートの適用を承認。
-- CODE_FACT: 必須2文書と任意6文書を適用し、docsに設計記録を配置。
-
-### role_logs
-- 開発範囲の観点: 初期ゲーム数を決めてから実装範囲を確定する。
-- 構成の観点: 画面・ルール・AIの分離、およびブラウザー内でのAI実行は設計候補。
-- 検証の観点: タッチ操作、手札の多い局面、特殊効果の連鎖について受け入れ条件を決める必要がある。
-
-### choices
-- A（推奨候補）: 神経衰弱・ババ抜き・UNO風ゲーム。
-- B: Aに大富豪・七並べ・ソリティアを加える。
-- 独自カード候補: 交換・シールド・全員ドロー。未採用。
-- スマートフォン縦画面中心のUIは提案候補。未確定。
-
-### user_required
-- design_decision: 初期ゲーム、独自カード効果、画面方向などの確認。
-- implementation_approval: ゲームコードの実装開始指示は未受領。
-- user_validation: なし（ゲーム未実装）。
-
-### implementation
-- discussing: ゲーム選択画面、ゲームルール、AI対戦、特殊カード、スマートフォン向けUI、Pages公開構成。
-- approval_required: なし（仕様未確定）。
-- user_validation: なし。
-- hold: なし。
-- discarded: なし。
-
-### next_focus
-初期ゲーム構成とオリジナルカードを選び、詳細ルール・受け入れ条件を整理する。
-
 ## 2026-10-02 — 初期構成の承認
 
 ### topic
@@ -426,3 +388,41 @@ UNO風ゲームの人数と独自カードを確認し、詳細ルールを整�
 - CODE_FACT: コミットddf4f24をmainへpushし、公開ワークフロー37021954718のbuild・deploy成功。
 - CODE_FACT: https://abltk-hama.github.io/card-game-collection/ で5ゲーム一覧とジンラミー起動を確認。errorログなし。
 - user_validation: スマートフォンでの操作感確認を継続。
+
+## 2026-10-03 — 七並べB案の実装
+
+### topic
+パス制限付き七並べの追加。
+
+### summary
+- USER_DECISION: 七並べB案を選択し「この案で実装して」により詳細候補と実装開始を承認。
+- USER_DECISION: 自分＋AI3人、52枚、7自動配置、♦7の持ち主から開始。パス3回まで、4回目で脱落して全手札配置。離れた配置の隣にも出せる。上位はあがり順、下位は脱落順、最後の1人は残った順位。
+- ENGINEERING_DECISION: `src/sevens.ts`にルールとAI、`src/sevens-view.ts`に表示を分離。4段13列の場を表示し、手札タップで1枚出す。
+- CODE_FACT: 43テスト、七並べ500対戦、型検査、本番ビルドを確認。3回残留・4回目脱落のブラウザー操作で11枚すべての場への配置と観戦移行を確認。
+- CODE_FACT: 直近10件を保持するため、最古の初期設計記録を`docs/ai_discussion_history.md`へ移動。
+
+### role_logs
+- ルールの観点: 脱落配置は連続区間に限定せず、場にある同スートのカードとの隣接で合法性を判定。AとKはつながらない。
+- AIの観点: 自分の手札と場だけを参照し、自分の次のカードを開く合法手を優先。出せない場合はパス。
+- 検証の観点: 不正操作無変更、脱落・あがりの手番除外、全52枚の保存、順位の一意性を確認。
+
+### choices
+承認済みB案を採用。出せるカードがある場合のパスも許可。
+
+### user_required
+- design_decision: なし。
+- implementation_approval: なし（受領済み）。
+- user_validation: スマートフォンでの場の読みやすさと操作感。
+
+### implementation
+- discussing: なし。
+- approval_required: なし。
+- user_validation: 七並べ追加版。
+- hold: なし。
+- discarded: なし。
+
+### next_focus
+公開更新とスマートフォンでの確認。
+
+### validation_plan
+実施結果を`docs/validation.md`へ記録。実機はNOT_RUN。公開成功はActionsと公開URLで確認する。
