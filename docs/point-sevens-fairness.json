@@ -1,0 +1,777 @@
+{
+  "date": "2026-10-03",
+  "seed": 20261003,
+  "dealsPerPolicy": 1200,
+  "policies": [
+    "strategic",
+    "always_place",
+    "random_place"
+  ],
+  "results": [
+    {
+      "policy": "strategic",
+      "games": 4800,
+      "deals": 1200,
+      "seat": [
+        {
+          "n": 4800,
+          "meanScore": 22.73625,
+          "winPercent": 18.791666666666668,
+          "meanPasses": 1.4427083333333333,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 23.028958333333332,
+          "winPercent": 23.229166666666668,
+          "meanPasses": 1.2366666666666666,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 23.348541666666666,
+          "winPercent": 26.875,
+          "meanPasses": 1.0422916666666666,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 23.610208333333333,
+          "winPercent": 31.104166666666668,
+          "meanPasses": 0.869375,
+          "meanCardCredit": 0
+        }
+      ],
+      "actualDiamondStartSeat": [
+        {
+          "n": 1200,
+          "meanScore": 22.11916666666667,
+          "winPercent": 13,
+          "meanPasses": 2.0033333333333334,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 23.225,
+          "winPercent": 26.25,
+          "meanPasses": 1.1141666666666667,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 23.523333333333333,
+          "winPercent": 30.083333333333332,
+          "meanPasses": 0.9058333333333334,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 23.666666666666668,
+          "winPercent": 30.666666666666668,
+          "meanPasses": 0.7941666666666667,
+          "meanCardCredit": 0
+        }
+      ],
+      "middle": {
+        "0–2": {
+          "n": 2776,
+          "meanScore": 23.152377521613833,
+          "winPercent": 24.7478386167147,
+          "meanPasses": 0.984149855907781,
+          "meanCardCredit": 0
+        },
+        "3–4": {
+          "n": 9564,
+          "meanScore": 23.251150146382265,
+          "winPercent": 25.930572982015892,
+          "meanPasses": 1.111668757841907,
+          "meanCardCredit": 0
+        },
+        "5以上": {
+          "n": 6860,
+          "meanScore": 23.09475218658892,
+          "winPercent": 23.80466472303207,
+          "meanPasses": 1.2642857142857142,
+          "meanCardCredit": 0
+        }
+      },
+      "actualDiamondStartMiddle": {
+        "0–2": {
+          "n": 694,
+          "meanScore": 23.11671469740634,
+          "winPercent": 26.22478386167147,
+          "meanPasses": 1.0489913544668588,
+          "meanCardCredit": 0
+        },
+        "3–4": {
+          "n": 2391,
+          "meanScore": 23.196988707653702,
+          "winPercent": 25.637808448347972,
+          "meanPasses": 1.1698034295273945,
+          "meanCardCredit": 0
+        },
+        "5以上": {
+          "n": 1715,
+          "meanScore": 23.05189504373178,
+          "winPercent": 23.61516034985423,
+          "meanPasses": 1.3154518950437317,
+          "meanCardCredit": 0
+        }
+      },
+      "sevens": {
+        "0": {
+          "n": 5772,
+          "meanScore": 23.898302148302147,
+          "winPercent": 35.187110187110186,
+          "meanPasses": 0.6223146223146223,
+          "meanCardCredit": 0
+        },
+        "1": {
+          "n": 8548,
+          "meanScore": 23.264974262985493,
+          "winPercent": 23.78334113242864,
+          "meanPasses": 1.051123069723912,
+          "meanCardCredit": 0
+        },
+        "2以上": {
+          "n": 4880,
+          "meanScore": 22.18545081967213,
+          "winPercent": 15.081967213114755,
+          "meanPasses": 1.9385245901639345,
+          "meanCardCredit": 0
+        }
+      },
+      "rank": [
+        {
+          "rank": 1,
+          "n": 19200,
+          "meanScore": 22.979791666666667,
+          "winPercent": 21.307291666666668,
+          "meanPasses": 1.100625,
+          "meanCardCredit": 1.5301041666666666
+        },
+        {
+          "rank": 2,
+          "n": 19200,
+          "meanScore": 23.0834375,
+          "winPercent": 22.911458333333332,
+          "meanPasses": 1.1449479166666667,
+          "meanCardCredit": 1.79140625
+        },
+        {
+          "rank": 3,
+          "n": 19200,
+          "meanScore": 23.097291666666667,
+          "winPercent": 23.598958333333332,
+          "meanPasses": 1.2178645833333333,
+          "meanCardCredit": 1.90109375
+        },
+        {
+          "rank": 4,
+          "n": 19200,
+          "meanScore": 23.262916666666666,
+          "winPercent": 26.40625,
+          "meanPasses": 1.1444791666666667,
+          "meanCardCredit": 1.958125
+        },
+        {
+          "rank": 5,
+          "n": 19200,
+          "meanScore": 23.46697916666667,
+          "winPercent": 29.505208333333332,
+          "meanPasses": 1.054375,
+          "meanCardCredit": 1.9895833333333333
+        },
+        {
+          "rank": 6,
+          "n": 19200,
+          "meanScore": 23.565052083333335,
+          "winPercent": 30.552083333333332,
+          "meanPasses": 0.9752604166666666,
+          "meanCardCredit": 1.9996875
+        },
+        {
+          "rank": 7,
+          "n": 19200,
+          "meanScore": 22.626822916666665,
+          "winPercent": 18.677083333333332,
+          "meanPasses": 1.58234375,
+          "meanCardCredit": 2
+        },
+        {
+          "rank": 8,
+          "n": 19200,
+          "meanScore": 23.535885416666666,
+          "winPercent": 30.734375,
+          "meanPasses": 0.97984375,
+          "meanCardCredit": 1.9996875
+        },
+        {
+          "rank": 9,
+          "n": 19200,
+          "meanScore": 23.44921875,
+          "winPercent": 28.666666666666668,
+          "meanPasses": 1.0622395833333333,
+          "meanCardCredit": 1.9843229166666667
+        },
+        {
+          "rank": 10,
+          "n": 19200,
+          "meanScore": 23.214375,
+          "winPercent": 26.223958333333332,
+          "meanPasses": 1.1757291666666667,
+          "meanCardCredit": 1.9553645833333333
+        },
+        {
+          "rank": 11,
+          "n": 19200,
+          "meanScore": 23.081145833333334,
+          "winPercent": 22.96875,
+          "meanPasses": 1.2072916666666667,
+          "meanCardCredit": 1.89125
+        },
+        {
+          "rank": 12,
+          "n": 19200,
+          "meanScore": 22.971770833333334,
+          "winPercent": 21.442708333333332,
+          "meanPasses": 1.20421875,
+          "meanCardCredit": 1.78265625
+        },
+        {
+          "rank": 13,
+          "n": 19200,
+          "meanScore": 23.018177083333335,
+          "winPercent": 22.005208333333332,
+          "meanPasses": 1.0716666666666668,
+          "meanCardCredit": 1.54546875
+        }
+      ],
+      "pairedFirstMinusFourth": {
+        "mean": -1.1083333333333334,
+        "approximate95CI": [
+          -1.200881409587308,
+          -1.0157852570793588
+        ]
+      },
+      "onePoint": 27495,
+      "twoPoint": 201374,
+      "forced": 0,
+      "voluntaryPasses": 7531,
+      "firstFinisherWinPercent": 48.9375,
+      "lastPlayerWinPercent": 9.208333333333334,
+      "meanFinalCards": 0.31895833333333334,
+      "maxTurns": 75
+    },
+    {
+      "policy": "always_place",
+      "games": 4800,
+      "deals": 1200,
+      "seat": [
+        {
+          "n": 4800,
+          "meanScore": 22.863333333333333,
+          "winPercent": 18.4375,
+          "meanPasses": 0.89375,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 23.186875,
+          "winPercent": 23.541666666666668,
+          "meanPasses": 0.723125,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 23.530625,
+          "winPercent": 26.833333333333332,
+          "meanPasses": 0.5529166666666666,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 23.80125,
+          "winPercent": 31.1875,
+          "meanPasses": 0.40729166666666666,
+          "meanCardCredit": 0
+        }
+      ],
+      "actualDiamondStartSeat": [
+        {
+          "n": 1200,
+          "meanScore": 22.24416666666667,
+          "winPercent": 11.833333333333334,
+          "meanPasses": 1.4208333333333334,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 23.35333333333333,
+          "winPercent": 26.333333333333332,
+          "meanPasses": 0.5891666666666666,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 23.7075,
+          "winPercent": 30.5,
+          "meanPasses": 0.4375,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 23.8625,
+          "winPercent": 31.333333333333332,
+          "meanPasses": 0.33416666666666667,
+          "meanCardCredit": 0
+        }
+      ],
+      "middle": {
+        "0–2": {
+          "n": 2776,
+          "meanScore": 23.34113832853026,
+          "winPercent": 24.96397694524496,
+          "meanPasses": 0.5392651296829971,
+          "meanCardCredit": 0
+        },
+        "3–4": {
+          "n": 9564,
+          "meanScore": 23.41917607695525,
+          "winPercent": 26.16060225846926,
+          "meanPasses": 0.6021539104976997,
+          "meanCardCredit": 0
+        },
+        "5以上": {
+          "n": 6860,
+          "meanScore": 23.24460641399417,
+          "winPercent": 23.396501457725947,
+          "meanPasses": 0.7454810495626822,
+          "meanCardCredit": 0
+        }
+      },
+      "actualDiamondStartMiddle": {
+        "0–2": {
+          "n": 694,
+          "meanScore": 23.28962536023055,
+          "winPercent": 26.22478386167147,
+          "meanPasses": 0.6080691642651297,
+          "meanCardCredit": 0
+        },
+        "3–4": {
+          "n": 2391,
+          "meanScore": 23.35926390631535,
+          "winPercent": 25.972396486825595,
+          "meanPasses": 0.6549560853199499,
+          "meanCardCredit": 0
+        },
+        "5以上": {
+          "n": 1715,
+          "meanScore": 23.198833819241983,
+          "winPercent": 23.14868804664723,
+          "meanPasses": 0.7871720116618076,
+          "meanCardCredit": 0
+        }
+      },
+      "sevens": {
+        "0": {
+          "n": 5772,
+          "meanScore": 24.116770616770616,
+          "winPercent": 35.20443520443521,
+          "meanPasses": 0.15280665280665282,
+          "meanCardCredit": 0
+        },
+        "1": {
+          "n": 8548,
+          "meanScore": 23.404188114178755,
+          "winPercent": 24.27468413664015,
+          "meanPasses": 0.5467945718296677,
+          "meanCardCredit": 0
+        },
+        "2以上": {
+          "n": 4880,
+          "meanScore": 22.330532786885247,
+          "winPercent": 14.200819672131148,
+          "meanPasses": 1.396311475409836,
+          "meanCardCredit": 0
+        }
+      },
+      "rank": [
+        {
+          "rank": 1,
+          "n": 19200,
+          "meanScore": 23.124270833333334,
+          "winPercent": 20.671875,
+          "meanPasses": 0.56078125,
+          "meanCardCredit": 1.4435416666666667
+        },
+        {
+          "rank": 2,
+          "n": 19200,
+          "meanScore": 23.25078125,
+          "winPercent": 22.927083333333332,
+          "meanPasses": 0.6108333333333333,
+          "meanCardCredit": 1.7483333333333333
+        },
+        {
+          "rank": 3,
+          "n": 19200,
+          "meanScore": 23.2709375,
+          "winPercent": 23.760416666666668,
+          "meanPasses": 0.6886458333333333,
+          "meanCardCredit": 1.88171875
+        },
+        {
+          "rank": 4,
+          "n": 19200,
+          "meanScore": 23.407395833333332,
+          "winPercent": 25.635416666666668,
+          "meanPasses": 0.6491666666666667,
+          "meanCardCredit": 1.9555208333333334
+        },
+        {
+          "rank": 5,
+          "n": 19200,
+          "meanScore": 23.624270833333334,
+          "winPercent": 29.505208333333332,
+          "meanPasses": 0.59234375,
+          "meanCardCredit": 1.9888020833333333
+        },
+        {
+          "rank": 6,
+          "n": 19200,
+          "meanScore": 23.757760416666667,
+          "winPercent": 31.276041666666668,
+          "meanPasses": 0.5411458333333333,
+          "meanCardCredit": 1.999375
+        },
+        {
+          "rank": 7,
+          "n": 19200,
+          "meanScore": 22.776354166666668,
+          "winPercent": 18.364583333333332,
+          "meanPasses": 1.0571354166666667,
+          "meanCardCredit": 2
+        },
+        {
+          "rank": 8,
+          "n": 19200,
+          "meanScore": 23.746770833333333,
+          "winPercent": 31.760416666666668,
+          "meanPasses": 0.5322916666666667,
+          "meanCardCredit": 1.999375
+        },
+        {
+          "rank": 9,
+          "n": 19200,
+          "meanScore": 23.606197916666666,
+          "winPercent": 28.786458333333332,
+          "meanPasses": 0.5980208333333333,
+          "meanCardCredit": 1.9855729166666667
+        },
+        {
+          "rank": 10,
+          "n": 19200,
+          "meanScore": 23.375520833333333,
+          "winPercent": 26.208333333333332,
+          "meanPasses": 0.6756770833333333,
+          "meanCardCredit": 1.94375
+        },
+        {
+          "rank": 11,
+          "n": 19200,
+          "meanScore": 23.231197916666666,
+          "winPercent": 23.0625,
+          "meanPasses": 0.6940104166666666,
+          "meanCardCredit": 1.863125
+        },
+        {
+          "rank": 12,
+          "n": 19200,
+          "meanScore": 23.145677083333332,
+          "winPercent": 21.395833333333332,
+          "meanPasses": 0.65125,
+          "meanCardCredit": 1.7261979166666668
+        },
+        {
+          "rank": 13,
+          "n": 19200,
+          "meanScore": 23.174635416666668,
+          "winPercent": 21.645833333333332,
+          "meanPasses": 0.52421875,
+          "meanCardCredit": 1.4544791666666668
+        }
+      ],
+      "pairedFirstMinusFourth": {
+        "mean": -1.1475,
+        "approximate95CI": [
+          -1.2308330079003933,
+          -1.0641669920996066
+        ]
+      },
+      "onePoint": 35452,
+      "twoPoint": 193900,
+      "forced": 0,
+      "voluntaryPasses": 0,
+      "firstFinisherWinPercent": 36.5625,
+      "lastPlayerWinPercent": 13.916666666666666,
+      "meanFinalCards": 0.21833333333333332,
+      "maxTurns": 60
+    },
+    {
+      "policy": "random_place",
+      "games": 4800,
+      "deals": 1200,
+      "seat": [
+        {
+          "n": 4800,
+          "meanScore": 20.588541666666668,
+          "winPercent": 24.479166666666668,
+          "meanPasses": 0.25,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 20.687291666666667,
+          "winPercent": 24.541666666666668,
+          "meanPasses": 0.19104166666666667,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 20.78708333333333,
+          "winPercent": 26.145833333333332,
+          "meanPasses": 0.12958333333333333,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 4800,
+          "meanScore": 20.6775,
+          "winPercent": 24.833333333333332,
+          "meanPasses": 0.09229166666666666,
+          "meanCardCredit": 0
+        }
+      ],
+      "actualDiamondStartSeat": [
+        {
+          "n": 1200,
+          "meanScore": 20.514166666666668,
+          "winPercent": 26.583333333333332,
+          "meanPasses": 0.4666666666666667,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 20.615,
+          "winPercent": 23.666666666666668,
+          "meanPasses": 0.13916666666666666,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 20.775833333333335,
+          "winPercent": 26.583333333333332,
+          "meanPasses": 0.085,
+          "meanCardCredit": 0
+        },
+        {
+          "n": 1200,
+          "meanScore": 20.516666666666666,
+          "winPercent": 23.166666666666668,
+          "meanPasses": 0.056666666666666664,
+          "meanCardCredit": 0
+        }
+      ],
+      "middle": {
+        "0–2": {
+          "n": 2776,
+          "meanScore": 20.735230547550433,
+          "winPercent": 27.12536023054755,
+          "meanPasses": 0.13220461095100863,
+          "meanCardCredit": 0
+        },
+        "3–4": {
+          "n": 9564,
+          "meanScore": 20.744981179422837,
+          "winPercent": 26.03513174404015,
+          "meanPasses": 0.15600167294019238,
+          "meanCardCredit": 0
+        },
+        "5以上": {
+          "n": 6860,
+          "meanScore": 20.58134110787172,
+          "winPercent": 22.696793002915452,
+          "meanPasses": 0.19285714285714287,
+          "meanCardCredit": 0
+        }
+      },
+      "actualDiamondStartMiddle": {
+        "0–2": {
+          "n": 694,
+          "meanScore": 20.688760806916427,
+          "winPercent": 27.665706051873197,
+          "meanPasses": 0.1585014409221902,
+          "meanCardCredit": 0
+        },
+        "3–4": {
+          "n": 2391,
+          "meanScore": 20.641572563780844,
+          "winPercent": 25.51233793391886,
+          "meanPasses": 0.18235048097030532,
+          "meanCardCredit": 0
+        },
+        "5以上": {
+          "n": 1715,
+          "meanScore": 20.52128279883382,
+          "winPercent": 23.206997084548107,
+          "meanPasses": 0.20466472303206998,
+          "meanCardCredit": 0
+        }
+      },
+      "sevens": {
+        "0": {
+          "n": 5772,
+          "meanScore": 20.474185724185723,
+          "winPercent": 19.022869022869024,
+          "meanPasses": 0.013686763686763687,
+          "meanCardCredit": 0
+        },
+        "1": {
+          "n": 8548,
+          "meanScore": 20.860903135236313,
+          "winPercent": 26.75479644361254,
+          "meanPasses": 0.09206832007487131,
+          "meanCardCredit": 0
+        },
+        "2以上": {
+          "n": 4880,
+          "meanScore": 20.626639344262294,
+          "winPercent": 28.99590163934426,
+          "meanPasses": 0.4745901639344262,
+          "meanCardCredit": 0
+        }
+      },
+      "rank": [
+        {
+          "rank": 1,
+          "n": 19200,
+          "meanScore": 20.34484375,
+          "winPercent": 17.760416666666668,
+          "meanPasses": 0.12744791666666666,
+          "meanCardCredit": 1.0357291666666666
+        },
+        {
+          "rank": 2,
+          "n": 19200,
+          "meanScore": 20.375416666666666,
+          "winPercent": 18.885416666666668,
+          "meanPasses": 0.15119791666666665,
+          "meanCardCredit": 1.1871354166666668
+        },
+        {
+          "rank": 3,
+          "n": 19200,
+          "meanScore": 20.536302083333332,
+          "winPercent": 22.182291666666668,
+          "meanPasses": 0.17723958333333334,
+          "meanCardCredit": 1.4798958333333334
+        },
+        {
+          "rank": 4,
+          "n": 19200,
+          "meanScore": 20.761666666666667,
+          "winPercent": 26.427083333333332,
+          "meanPasses": 0.17453125,
+          "meanCardCredit": 1.7776041666666667
+        },
+        {
+          "rank": 5,
+          "n": 19200,
+          "meanScore": 20.99390625,
+          "winPercent": 30.864583333333332,
+          "meanPasses": 0.15463541666666666,
+          "meanCardCredit": 1.9523958333333333
+        },
+        {
+          "rank": 6,
+          "n": 19200,
+          "meanScore": 21.099114583333332,
+          "winPercent": 32.588541666666664,
+          "meanPasses": 0.12744791666666666,
+          "meanCardCredit": 1.99671875
+        },
+        {
+          "rank": 7,
+          "n": 19200,
+          "meanScore": 20.7209375,
+          "winPercent": 27.885416666666668,
+          "meanPasses": 0.33135416666666667,
+          "meanCardCredit": 2
+        },
+        {
+          "rank": 8,
+          "n": 19200,
+          "meanScore": 21.082760416666666,
+          "winPercent": 31.927083333333332,
+          "meanPasses": 0.125,
+          "meanCardCredit": 1.996875
+        },
+        {
+          "rank": 9,
+          "n": 19200,
+          "meanScore": 20.994635416666668,
+          "winPercent": 30.770833333333332,
+          "meanPasses": 0.1534375,
+          "meanCardCredit": 1.9509375
+        },
+        {
+          "rank": 10,
+          "n": 19200,
+          "meanScore": 20.784322916666667,
+          "winPercent": 26.671875,
+          "meanPasses": 0.17734375,
+          "meanCardCredit": 1.7819270833333334
+        },
+        {
+          "rank": 11,
+          "n": 19200,
+          "meanScore": 20.524270833333333,
+          "winPercent": 21.854166666666668,
+          "meanPasses": 0.17385416666666667,
+          "meanCardCredit": 1.4768229166666667
+        },
+        {
+          "rank": 12,
+          "n": 19200,
+          "meanScore": 20.353385416666665,
+          "winPercent": 19.098958333333332,
+          "meanPasses": 0.156875,
+          "meanCardCredit": 1.18265625
+        },
+        {
+          "rank": 13,
+          "n": 19200,
+          "meanScore": 20.334791666666668,
+          "winPercent": 18.083333333333332,
+          "meanPasses": 0.12411458333333333,
+          "meanCardCredit": 1.0321354166666667
+        }
+      ],
+      "pairedFirstMinusFourth": {
+        "mean": -0.45666666666666667,
+        "approximate95CI": [
+          -0.5652732773390995,
+          -0.34806005599423384
+        ]
+      },
+      "onePoint": 96398,
+      "twoPoint": 133180,
+      "forced": 0,
+      "voluntaryPasses": 0,
+      "firstFinisherWinPercent": 34.75,
+      "lastPlayerWinPercent": 15.666666666666666,
+      "meanFinalCards": 0.17125,
+      "maxTurns": 55
+    }
+  ]
+}
