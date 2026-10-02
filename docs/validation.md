@@ -11,7 +11,8 @@
 |ブラウザーエラー|PASS|操作確認時のerrorログなし|
 |本番プレビュー|PASS|`/card-game-collection/`でゲーム一覧表示|
 |実機iOS・Android|NOT_RUN|実端末のタッチ・Safari・Chromeで確認が必要|
-|GitHub Actions・Pages公開|NOT_RUN|ワークフロー準備済み、push・Pages設定・公開確認は未実施|
+|GitHub Actions・Pages公開|PASS|mainへのpush、Pagesのworkflow方式有効化、公開ワークフロー37004912348の再実行2回目でbuild・deploy成功|
+|公開URLでの起動|PASS|https://abltk-hama.github.io/card-game-collection/ で一覧表示と3ゲーム開始、ブラウザーerrorログなし|
 
 初期版に途中保存はなく、再読み込みでゲームはリセットされる。
 
