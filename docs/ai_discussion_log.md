@@ -437,3 +437,8 @@ UNO風ゲームの人数と独自カードを確認し、詳細ルールを整�
 
 ### validation_plan
 `docs/validation.md`と`docs/point-sevens-fairness.md`を参照。人間同士・最適戦略・通常七並べとの公平さの直接比較はNOT_RUN。実機未確認。
+
+### publication_result
+- CODE_FACT: コミット7e266a6をmainへpush。公開ワークフロー37077733182のbuild・deploy成功。
+- CODE_FACT: 公開URLで7ゲーム一覧とポイント七並べ起動を確認。360px幅の横はみ出しなし、errorログなし。
+- user_validation: 公開版での試遊と公平さの追加検討を継続。
