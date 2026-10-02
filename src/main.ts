@@ -3,13 +3,16 @@ import { names, cardLabel, type PlayingCard } from './common.ts';
 import { createMemory, reveal, resolvePair, memoryMove, type MemoryState } from './memory.ts';
 import { createOldMaid, nextPlayer, takeCard, type OldMaidState } from './oldmaid.ts';
 import { createUno, canPlay, playUno, drawTurn, passUno, unoLabel, unoMove, colors, type Color, type UnoCard, type UnoState } from './uno.ts';
+import { createDaifugo, nextRound, playDaifugo, passDaifugo, canPlayDaifugo, exchangeCards, daifugoMove, classNames, type DaifugoState } from './daifugo.ts';
 
-type Game = 'memory' | 'oldmaid' | 'uno';
+type Game = 'memory' | 'oldmaid' | 'uno' | 'daifugo';
 const root = document.querySelector<HTMLDivElement>('#app')!;
 let game: Game | null = null;
 let memory: MemoryState;
 let oldmaid: OldMaidState;
 let uno: UnoState;
+let daifugo: DaifugoState;
+let selectedCards: string[] = [];
 let custom = true;
 let pending: number | null = null;
 let selectedColor: Color | null = null;
@@ -18,17 +21,18 @@ let busy = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let generation = 0;
 const colorNames: Record<Color, string> = { red: '赤', yellow: '黄', green: '緑', blue: '青' };
-const titles: Record<Game, string> = { memory: '神経衰弱', oldmaid: 'ババ抜き', uno: 'カラーマッチ' };
+const titles: Record<Game, string> = { memory: '神経衰弱', oldmaid: 'ババ抜き', uno: 'カラーマッチ', daifugo: '大富豪' };
 function later(action: () => void, delay = 800): void {
   const token = generation;
   clearTimeout(timer); timer = setTimeout(() => { if (token === generation) action(); }, delay);
 }
-function reset(): void { generation++; clearTimeout(timer); busy = false; pending = null; selectedColor = null; selectedTarget = null; }
+function reset(): void { generation++; clearTimeout(timer); busy = false; pending = null; selectedColor = null; selectedTarget = null; selectedCards = []; }
 function start(g: Game): void {
   reset(); game = g;
   if (g === 'memory') memory = createMemory();
   if (g === 'oldmaid') oldmaid = createOldMaid();
   if (g === 'uno') uno = createUno(custom);
+  if (g === 'daifugo') daifugo = createDaifugo();
   render(); schedule();
 }
 function button(action: string, label: string, extra = '', disabled = false): string {
@@ -43,10 +47,11 @@ function unoCard(c: UnoCard, index?: number, disabled = false): string {
   return index === undefined ? `<div class="uno-card ${c.color ?? 'wild'}" aria-label="${label}">${inside}</div>` : `<button class="uno-card ${c.color ?? 'wild'}" data-action="play" data-index="${index}" aria-label="${label}" ${disabled ? 'disabled' : ''}>${inside}</button>`;
 }
 function home(): string {
-  return `<div class="home"><div class="eyebrow">A LITTLE BREAK, A LITTLE PLAY</div><h1>ひとやすみ<br>カード部<span>♣</span></h1><p class="intro">ひとりでも、テーブルはにぎやか。<br>好きなカードで、AIとひと勝負。</p><div class="section-label">今日、何で遊ぶ？ <span>03 GAMES</span></div><div class="game-list">
+  return `<div class="home"><div class="eyebrow">A LITTLE BREAK, A LITTLE PLAY</div><h1>ひとやすみ<br>カード部<span>♣</span></h1><p class="intro">ひとりでも、テーブルはにぎやか。<br>好きなカードで、AIとひと勝負。</p><div class="section-label">今日、何で遊ぶ？ <span>04 GAMES</span></div><div class="game-list">
     <button class="game-tile" data-action="start" data-game="memory"><span class="tile-icon">♠</span><span><small>01 / MEMORY</small><strong>神経衰弱</strong><em>めくって、覚えて、ペアを探そう。</em><i>24枚 · AIと1対1</i></span><b>↗</b></button>
     <button class="game-tile" data-action="start" data-game="oldmaid"><span class="tile-icon coral">★</span><span><small>02 / OLD MAID</small><strong>ババ抜き</strong><em>最後のジョーカー、誰の手に？</em><i>あなた＋AI3人</i></span><b>↗</b></button>
     <button class="game-tile" data-action="start" data-game="uno"><span class="tile-icon gold">↔</span><span><small>03 / COLOR MATCH</small><strong>カラーマッチ</strong><em>色をつないで、逆転の一枚。</em><i>UNO風 · あなた＋AI3人</i></span><b>↗</b></button>
+    <button class="game-tile" data-action="start" data-game="daifugo"><span class="tile-icon royal">♦</span><span><small>04 / DAIFUGO</small><strong>大富豪</strong><em>革命の一手で、頂点をつかもう。</em><i>革命・8切り・都落ち · AI3人</i></span><b>↗</b></button>
   </div><label class="custom-option"><span><strong>カラーマッチの独自カード</strong><small>交換 / シールド / 全員ドロー</small></span><input id="custom" type="checkbox" ${custom ? 'checked' : ''} aria-label="独自カードを使う"></label><div class="home-note">✦ 登録なし。AI対戦はブラウザーの中で。</div></div>`;
 }
 function opponents(counts: number[], turn: number, shields?: boolean[]): string {
@@ -73,12 +78,24 @@ function choicesView(): string {
   const card = uno.hands[0][pending!];
   return `<div class="choice-panel" role="dialog" aria-modal="true" aria-labelledby="choice-title"><h2 id="choice-title">${unoLabel(card)}を使う</h2><p>次の色を選んでください</p><div class="color-choices">${colors.map(c => button('color', colorNames[c], `class="${c} ${selectedColor === c ? 'selected' : ''}" data-color="${c}" aria-pressed="${selectedColor === c}"`)).join('')}</div>${card.kind === 'swap' ? `<p>交換する相手</p><div class="target-choices">${[1, 2, 3].map(p => button('target', `${names[p]} (${uno.hands[p].length}枚)`, `data-target="${p}" class="${selectedTarget === p ? 'selected' : ''}" aria-pressed="${selectedTarget === p}"`)).join('')}</div>` : ''}${button('confirm', 'このカードを出す', 'class="primary wide"', !selectedColor || (card.kind === 'swap' && selectedTarget === null))}${button('cancel', 'キャンセル', 'class="secondary wide"')}</div>`;
 }
+function daifugoView(): string {
+  const s = daifugo;
+  const selecting = s.phase === 'exchange' || s.phase === 'play' && s.turn === 0;
+  const ownPosition = s.order.indexOf(0);
+  const humanClass = s.previousOrder.length ? classNames[s.previousOrder.indexOf(0)] : '平民';
+  const ranks = s.phase === 'done' ? `<div class="result"><small>ROUND ${s.round} FINISHED</small><h2>今回の順位</h2><ol class="rank-list">${s.order.map((p, i) => `<li><strong>${classNames[i]}</strong><span>${names[p]}${p === s.fallen ? ' · 都落ち' : ''}</span></li>`).join('')}</ol>${button('next-round', '次のラウンドへ', 'class="primary wide"')}${button('home', 'ゲームを選ぶ', 'class="secondary wide"')}</div>` : '';
+  const canSubmit = s.phase === 'exchange' ? selectedCards.length === s.exchangeCount : selecting && canPlayDaifugo(s, s.hands[0], selectedCards);
+  return `<div class="round-heading"><strong>ROUND ${s.round}</strong><span>${s.revolution ? '革命中 · 3が最強' : '通常 · 2が最強'}</span></div><div class="opponents">${[1, 2, 3].map(p => `<div class="opponent ${s.phase === 'play' && s.turn === p ? 'active' : ''}"><div class="avatar">${['S', 'M', 'R'][p - 1]}</div><strong>${names[p]}</strong><span>${p === s.fallen ? '都落ち' : s.order.includes(p) ? `${s.order.indexOf(p) + 1}位あがり` : `${s.hands[p].length}枚${s.passed[p] ? ' · パス' : ''}`}</span><small>${s.previousOrder.length ? classNames[s.previousOrder.indexOf(p)] : '平民'}</small></div>`).join('')}</div><div class="status" role="status">${s.phase === 'done' ? s.message : s.phase === 'exchange' ? `カード交換 · ${s.message}` : `${names[s.turn]}の番 · ${s.message}`}</div><div class="daifugo-table"><small>${s.phase === 'exchange' ? `前回の${humanClass}として、${classNames[3 - s.previousOrder.indexOf(0)]}に渡すカードを選ぼう` : s.table.length ? `場のカード · ${s.table.length}枚` : '場は空です · 好きな数字から出せます'}</small><div class="table-cards">${s.table.length ? s.table.map(playingCard).join('') : '<span class="table-symbol">♦</span>'}</div></div><div class="hand-heading">あなたの手札 <span>${s.fallen === 0 ? '都落ち' : ownPosition >= 0 ? `${ownPosition + 1}位あがり` : `${s.hands[0].length}枚 · ${humanClass}`}</span></div><div class="hand daifugo-hand">${s.hands[0].map(c => button('select-daifugo', `<span>${cardLabel(c)}</span>`, `class="playing-card ${c.suit === '♥' || c.suit === '♦' ? 'ink-red' : ''} ${selectedCards.includes(c.id) ? 'chosen' : ''}" data-id="${c.id}" aria-label="${cardLabel(c)}" aria-pressed="${selectedCards.includes(c.id)}"`, !selecting || busy)).join('') || '<p>残りの対戦を見守ろう。</p>'}</div>${s.phase !== 'done' ? `<div class="daifugo-actions">${button(s.phase === 'exchange' ? 'exchange-daifugo' : 'submit-daifugo', s.phase === 'exchange' ? `${selectedCards.length}/${s.exchangeCount}枚 · 交換する` : `${selectedCards.length}枚 · 出す`, 'class="primary"', !canSubmit)}${s.phase === 'play' ? button('pass-daifugo', 'パス', 'class="secondary"', !selecting || !s.table.length) : ''}${button('clear-selection', '選択解除', 'class="secondary"', !selectedCards.length)}</div><p class="hint">手札は横にスワイプ · 複数選んでから確定</p>` : ''}${ranks}`;
+}
 function rules(): string {
-  const text = game === 'memory' ? '24枚から同じ数字のペアを探します。ペアができたら続けてめくれます。獲得ペアが多い人の勝ち。AIは公開されたカードを覚えます。' : game === 'oldmaid' ? '同じ数字をペアで捨て、次の相手から1枚引きます。手札がなくなればあがり。最後にジョーカーを持った人が負けです。' : '色か数字・記号が同じカードを出します。引いた1枚が出せる場合は出すか終了を選べます。+2・+4は次の人が引いて手番を休み、積み重ねはできません。+4は今の色が手札にない場合だけ使えます。UNO宣言・チャレンジはありません。交換は相手と残りの手札を交換。防御はドローを1回防ぎます（手番の休みは防ぎません）。全員+1は自分以外が1枚引きます。効果処理後に手札が0枚なら勝ち。山札が枯れたら捨て札を再利用します。';
+  const text = game === 'daifugo' ? '52枚・ジョーカーなし。通常は3→4→5→6→7→8→9→10→J→Q→K→A→2の順に強く、同じ数字1〜4枚を出します。場と同じ枚数で強い数字を出してください。4枚で革命、強さが反転し、再革命で戻ります。8で場を流し、出した人から再開（あがったら次の人）。パスすると場が流れるまで参加できません。前回の大富豪が最初にあがれなければ即都落ちし最下位です。2ラウンド目以降は大富豪と大貧民で2枚、富豪と貧民で1枚を交換。下位は通常順で最強、上位は任意カードを渡します。初回はダイヤ3の持ち主から、以降は前回の大貧民から開始。革命は毎ラウンドリセット。階段・縛り・11バック・あがり禁止はありません。' : game === 'memory' ? '24枚から同じ数字のペアを探します。ペアができたら続けてめくれます。獲得ペアが多い人の勝ち。AIは公開されたカードを覚えます。' : game === 'oldmaid' ? '同じ数字をペアで捨て、次の相手から1枚引きます。手札がなくなればあがり。最後にジョーカーを持った人が負けです。' : '色か数字・記号が同じカードを出します。引いた1枚が出せる場合は出すか終了を選べます。+2・+4は次の人が引いて手番を休み、積み重ねはできません。+4は今の色が手札にない場合だけ使えます。UNO宣言・チャレンジはありません。交換は相手と残りの手札を交換。防御はドローを1回防ぎます（手番の休みは防ぎません）。全員+1は自分以外が1枚引きます。効果処理後に手札が0枚なら勝ち。山札が枯れたら捨て札を再利用します。';
   return `<details class="rules"><summary>遊び方を見る</summary><p>${text}</p></details>`;
 }
 function render(): void {
-  root.innerHTML = `<header class="site-header"><button class="brand" data-action="home">♣ <span>ひとやすみカード部</span></button><span class="header-tag">SOLO PLAY</span></header><main>${game ? `<div class="game-header">${button('home', '← ゲーム一覧', 'class="back"')}<span>AI対戦</span><h1>${titles[game]}</h1>${button('restart', 'やり直す', 'class="restart"')}</div><section class="game-board">${game === 'memory' ? memoryView() : game === 'oldmaid' ? oldmaidView() : unoView()}</section>${rules()}` : home()}</main><footer>ひとやすみカード部 <span>PLAY AT YOUR OWN PACE</span></footer>`;
+  const handScroll = root.querySelector('.hand')?.scrollLeft ?? 0;
+  root.innerHTML = `<header class="site-header"><button class="brand" data-action="home">♣ <span>ひとやすみカード部</span></button><span class="header-tag">SOLO PLAY</span></header><main>${game ? `<div class="game-header">${button('home', '← ゲーム一覧', 'class="back"')}<span>AI対戦</span><h1>${titles[game]}</h1>${button('restart', 'やり直す', 'class="restart"')}</div><section class="game-board">${game === 'memory' ? memoryView() : game === 'oldmaid' ? oldmaidView() : game === 'daifugo' ? daifugoView() : unoView()}</section>${rules()}` : home()}</main><footer>ひとやすみカード部 <span>PLAY AT YOUR OWN PACE</span></footer>`;
+  const handElement = root.querySelector('.hand');
+  if (handElement) handElement.scrollLeft = handScroll;
   if (pending !== null) root.querySelector<HTMLButtonElement>('.choice-panel button')?.focus();
 }
 function flip(index: number): void {
@@ -88,6 +105,11 @@ function flip(index: number): void {
   } else { render(); if (memory.turn === 1) schedule(); }
 }
 function schedule(): void {
+  if (game === 'daifugo' && daifugo.phase === 'play' && daifugo.turn !== 0) later(() => {
+    const ids = daifugoMove(daifugo.hands[daifugo.turn], daifugo.table, daifugo.revolution);
+    if (ids.length) playDaifugo(daifugo, ids); else passDaifugo(daifugo);
+    render(); schedule();
+  });
   if (game === 'memory' && !memory.done && memory.turn === 1 && !busy) later(() => flip(memoryMove(memory)));
   if (game === 'oldmaid' && !oldmaid.done && oldmaid.turn !== 0) later(() => {
     const count = oldmaid.hands[nextPlayer(oldmaid, oldmaid.turn)].length;
@@ -109,6 +131,17 @@ root.addEventListener('click', event => {
   if (action === 'start') { start(element.dataset.game as Game); return; }
   if (action === 'restart' && game) { if (window.confirm('現在のゲームを終了して、最初から遊びますか？')) start(game); return; }
   if (busy) return;
+  if (game === 'daifugo') {
+    if (action === 'next-round' && daifugo.phase === 'done') { reset(); daifugo = nextRound(daifugo); }
+    if (action === 'select-daifugo' && (daifugo.phase === 'exchange' || daifugo.phase === 'play' && daifugo.turn === 0)) {
+      const id = element.dataset.id!;
+      selectedCards = selectedCards.includes(id) ? selectedCards.filter(c => c !== id) : [...selectedCards, id];
+    }
+    if (action === 'clear-selection') selectedCards = [];
+    if (action === 'submit-daifugo' && daifugo.turn === 0 && playDaifugo(daifugo, selectedCards)) selectedCards = [];
+    if (action === 'exchange-daifugo' && exchangeCards(daifugo, selectedCards)) selectedCards = [];
+    if (action === 'pass-daifugo' && daifugo.turn === 0 && passDaifugo(daifugo)) selectedCards = [];
+  }
   if (action === 'flip' && game === 'memory' && memory.turn === 0) { flip(index); return; }
   if (action === 'take' && game === 'oldmaid' && oldmaid.turn === 0) takeCard(oldmaid, index);
   if (game === 'uno' && uno.turn === 0) {
