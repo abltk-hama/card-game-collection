@@ -443,3 +443,9 @@
 
 ### validation_plan
 docs/validation.md参照。新ルールの公平さ・実機操作はNOT_RUN。
+
+### publication_result
+- CODE_FACT: コミットa5ad622をmainへpush。ワークフロー37081971729のbuild・deploy成功。
+- CODE_FACT: 公開URLで特殊カード配布・AI反転・人間の指定配置（反転中も固定＋2）を確認。360px幅の画面を記録、errorログなし。
+- CODE_FACT: 既存6ゲーム起動の回帰確認で横はみ出しなし、errorログなし。
+- user_validation: 特殊カードの強さ・累計での遊び心地。実機と新ルールの公平さ調査は未実施。
