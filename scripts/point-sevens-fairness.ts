@@ -29,6 +29,8 @@ for (const policy of policies) {
   const paired: number[] = [];
   for (let deal = 0; deal < deals; deal++) {
     const base = createPointSevens(seeded(20261003 + deal));
+    // 特殊カード導入前の比較を再現するため、受動効果も無効にする。
+    base.specials = [[],[],[],[]];
     const initial = base.hands.map((h, p) => [...h, ...base.board.filter(c => base.placements[c.id].player === p)]);
     const starts = [];
     for (let offset = 0; offset < 4; offset++) {

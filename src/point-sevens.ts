@@ -16,7 +16,9 @@ export interface PointSevensState {
   placements: Record<string, { player: number; points: number }>;
   message: string;
   specials: PointSpecial[][];
-  inverted: boolean;
+  advantage: boolean[];
+  bonuses: number[];
+  doublePoints: number;
   doubleReady: boolean[];
   remainingPlays: number;
   placedThisTurn: number;
@@ -29,8 +31,8 @@ export interface PointSevensState {
 }
 export const pointSpecialKinds = ['flip', 'force', 'double', 'freePass', 'gift'] as const;
 export type PointSpecialKind = typeof pointSpecialKinds[number];
-export interface PointSpecial { id: string; kind: PointSpecialKind; }
-export const pointSpecialNames: Record<PointSpecialKind, string> = { flip: '得点反転', force: '指定配置', double: '連続配置', freePass: 'パス免除', gift: '持ち札渡し' };
+export interface PointSpecial { id: string; kind: PointSpecialKind; remaining?: number; }
+export const pointSpecialNames: Record<PointSpecialKind, string> = { flip: '得点優位', force: '指定配置', double: '連続配置', freePass: 'パス免除', gift: '持ち札渡し' };
 export function createPointSevens(random: Random = Math.random, options: { round?: number; totals?: readonly number[]; bonusOwner?: number | null } = {}): PointSevensState {
   const hands: PlayingCard[][] = [[], [], [], []], board: PlayingCard[] = [];
   const scores = [0, 0, 0, 0], placements: PointSevensState['placements'] = {};
@@ -45,27 +47,37 @@ export function createPointSevens(random: Random = Math.random, options: { round
   hands.forEach(h => h.sort((a, b) => sevensSuits.indexOf(a.suit) - sevensSuits.indexOf(b.suit) || a.rank - b.rank));
   const round = options.round ?? 1, bonusOwner = options.bonusOwner ?? null;
   const specials = hands.map((_, p) => [{ id: `${round}:${p}:random`, kind: pointSpecialKinds[Math.floor(random() * pointSpecialKinds.length)] }]);
-  return { hands, board, turn: bonusOwner ?? turn, scores, passes: [0, 0, 0, 0], penalties: [0, 0, 0, 0], finishOrder: [], phase: bonusOwner === null ? 'play' : 'choice', consecutivePasses: 0, forced: false, lastPassBoardSize: [-1, -1, -1, -1], placements, message: bonusOwner === null ? '初期配置の7は各＋2点。全員に特殊カードを1枚配りました。' : '前ラウンド最下位の追加特殊カードを選んでください。', specials, inverted: false, doubleReady: [false, false, false, false], remainingPlays: 1, placedThisTurn: 0, interrupt: null, freePasses: [0, 0, 0, 0], round, totals: [...(options.totals ?? [0, 0, 0, 0])], bonusOwner, passPlayers: [] };
+  return { hands, board, turn: bonusOwner ?? turn, scores, passes: [0, 0, 0, 0], penalties: [0, 0, 0, 0], finishOrder: [], phase: bonusOwner === null ? 'play' : 'choice', consecutivePasses: 0, forced: false, lastPassBoardSize: [-1, -1, -1, -1], placements, message: bonusOwner === null ? '初期配置の7は各＋2点。全員に特殊カードを1枚配りました。' : '前ラウンド最下位の追加特殊カードを選んでください。', specials, advantage: [false,false,false,false], bonuses: [0,0,0,0], doublePoints: 0, doubleReady: [false, false, false, false], remainingPlays: 1, placedThisTurn: 0, interrupt: null, freePasses: [0, 0, 0, 0], round, totals: [...(options.totals ?? [0, 0, 0, 0])], bonusOwner, passPlayers: [] };
 }
 // 出すカード自身が7から途切れずにつながるかで採点する。
 // 端側のカードに接続しても、出したカードと7の間に穴が残れば1点。
-export function pointSevensValue(board: readonly PlayingCard[], card: PlayingCard, inverted = false): 0 | 1 | 2 {
+export function pointSevensValue(board: readonly PlayingCard[], card: PlayingCard): 0 | 1 | 2 {
   if (!sevensSuits.includes(card.suit) || card.rank < 1 || card.rank > 13 || !Number.isInteger(card.rank) || board.some(c => c.id === card.id)) return 0;
   const ranks = new Set(board.filter(c => c.suit === card.suit).map(c => c.rank));
   if (card.rank !== 1 && card.rank !== 13 && !ranks.has(card.rank - 1) && !ranks.has(card.rank + 1)) return 0;
   ranks.add(card.rank);
-  for (let rank = Math.min(card.rank, 7); rank <= Math.max(card.rank, 7); rank++) if (!ranks.has(rank)) return inverted ? 2 : 1;
-  return inverted ? 1 : 2;
+  for (let rank = Math.min(card.rank, 7); rank <= Math.max(card.rank, 7); rank++) if (!ranks.has(rank)) return 1;
+  return 2;
+}
+export function pointFixedPoints(s: PointSevensState, player: number): 1 | 2 | undefined {
+  return s.advantage.some(Boolean) ? s.advantage[player] ? 2 : 1 : undefined;
+}
+export function pointPlacementValue(s: PointSevensState, card: PlayingCard, player: number): 0 | 1 | 2 {
+  const normal = pointSevensValue(s.board, card);
+  return normal ? pointFixedPoints(s, player) ?? normal : 0;
+}
+function addPointBonus(s: PointSevensState, player: number, points: number): void {
+  s.bonuses[player] += points; s.scores[player] += points;
 }
 function activePlayers(s: PointSevensState): number[] { return [0, 1, 2, 3].filter(p => !s.finishOrder.includes(p)); }
 function markFinished(s: PointSevensState, player: number): void {
   if (!s.hands[player].length && !s.finishOrder.includes(player)) {
-    s.finishOrder.push(player); s.specials[player] = []; s.doubleReady[player] = false;
+    s.finishOrder.push(player); s.specials[player] = []; s.doubleReady[player] = false; s.advantage[player] = false;
     s.message += ' あがりました。';
   }
 }
 function beginPointTurn(s: PointSevensState): void {
-  s.placedThisTurn = 0;
+  s.placedThisTurn = 0; s.doublePoints = 0;
   s.remainingPlays = s.phase === 'play' && s.doubleReady[s.turn] ? 2 : 1;
   s.doubleReady[s.turn] = false;
 }
@@ -73,7 +85,7 @@ function finishPointRound(s: PointSevensState, player: number): void {
   s.penalties[player] = s.hands[player].length; s.scores[player] -= s.penalties[player];
   if (!s.finishOrder.includes(player)) s.finishOrder.push(player);
   s.phase = 'done'; s.interrupt = null; s.forced = false;
-  s.specials = [[], [], [], []]; s.doubleReady = [false, false, false, false];
+  s.advantage = [false,false,false,false]; s.specials = [[], [], [], []]; s.doubleReady = [false, false, false, false];
   s.totals = s.totals.map((v, p) => v + s.scores[p]);
   s.message += ` 残り${s.penalties[player]}枚で－${s.penalties[player]}点。得点が確定しました。`;
 }
@@ -96,9 +108,12 @@ export function playPointSevens(s: PointSevensState, id: string): boolean {
   if (!['play', 'final', 'interrupt'].includes(s.phase) || s.finishOrder.includes(s.turn)) return false;
   const p = s.turn, hand = s.hands[p], index = hand.findIndex(c => c.id === id);
   if (index < 0) return false;
-  const card = hand[index], points = pointSevensValue(s.board, card, s.inverted); if (!points) return false;
+  const card = hand[index], points = pointPlacementValue(s, card, p); if (!points) return false;
   s.board.push(hand.splice(index, 1)[0]); s.scores[p] += points; s.placements[id] = { player: p, points };
-  s.consecutivePasses = 0; s.passPlayers = []; s.forced = false; s.message = `${cardLabel(card)}を出して＋${points}点。`;
+  s.advantage[p] = false;
+  if (s.phase === 'interrupt') addPointBonus(s, s.interrupt!.giver, 1);
+  if (s.phase === 'play') { s.doublePoints += points; if (s.placedThisTurn === 1) addPointBonus(s, p, s.doublePoints); }
+  s.consecutivePasses = 0; s.passPlayers = []; s.forced = false; s.message = `${cardLabel(card)}を出して＋${points}点。${s.phase === 'play' && s.placedThisTurn === 1 ? ` 2枚成功：ボーナス＋${s.doublePoints}点。` : s.phase === 'interrupt' ? ' 渡した人にボーナス＋1点。' : ''}`;
   if (s.phase === 'final' || s.phase === 'interrupt' && s.interrupt!.final) {
     finishPointRound(s, p); return true;
   }
@@ -126,7 +141,9 @@ export function canPassPointSevens(s: PointSevensState): boolean {
 }
 export function passPointSevens(s: PointSevensState): boolean {
   if (!canPassPointSevens(s)) return false;
-  recordPointPass(s, false); return true;
+  const shield = s.specials[s.turn].find(c=>c.kind==='freePass');
+  if (shield) { shield.remaining = (shield.remaining ?? 3) - 1; if (!shield.remaining) s.specials[s.turn] = s.specials[s.turn].filter(c=>c.id!==shield.id); }
+  recordPointPass(s, !!shield); return true;
 }
 function recordPointPass(s: PointSevensState, free: boolean): void {
   const p = s.turn;
@@ -141,10 +158,10 @@ function recordPointPass(s: PointSevensState, free: boolean): void {
 export function pointSevensRanking(s: PointSevensState): number[] {
   return [0, 1, 2, 3].sort((a, b) => s.scores[b] - s.scores[a] || s.finishOrder.indexOf(a) - s.finishOrder.indexOf(b));
 }
-export interface PointMoveOptions { forced: boolean; lastPassBoardSize: number; inverted?: boolean; }
+export interface PointMoveOptions { forced: boolean; lastPassBoardSize: number; fixedPoints?: 1 | 2; }
 // 判断材料は自分の手札と公開の場・パス履歴のみ。
 export function pointSevensMove(hand: readonly PlayingCard[], board: readonly PlayingCard[], options: PointMoveOptions): string | null {
-  const value = (c: PlayingCard) => pointSevensValue(board, c, options.inverted);
+  const value = (c: PlayingCard) => pointSevensValue(board, c) ? options.fixedPoints ?? pointSevensValue(board, c) : 0;
   const legal = hand.filter(c => pointSevensValue(board, c) > 0);
   if (!legal.length) return null;
   const priority = (card: PlayingCard) => {
@@ -155,7 +172,7 @@ export function pointSevensMove(hand: readonly PlayingCard[], board: readonly Pl
   legal.sort((a, b) => priority(b) - priority(a) || a.id.localeCompare(b.id));
   // ＋1点しか出せず、相手の1枚で自分の2枚以上が7側から出せるなら一度待つ。
   // 同じ盤面では繰り返さず、終盤と強制配置では待たない。
-  if (!options.forced && !options.inverted && hand.length > 3 && options.lastPassBoardSize !== board.length && value(legal[0]) === 1) {
+  if (!options.forced && !options.fixedPoints && hand.length > 3 && options.lastPassBoardSize !== board.length && value(legal[0]) === 1) {
     for (const suit of sevensSuits) for (const step of [-1, 1]) {
       const laid = new Set(board.filter(c => c.suit === suit).map(c => c.rank));
       const own = new Set(hand.filter(c => c.suit === suit).map(c => c.rank));
@@ -180,7 +197,7 @@ export function choosePointSpecial(s: PointSevensState, kind: PointSpecialKind):
   s.turn = s.placements['♦7'].player; s.phase = 'play'; s.message = '追加カードを選びました。♦7の持ち主から開始します。'; beginPointTurn(s); return true;
 }
 export function canUsePointSpecial(s: PointSevensState, id: string): boolean {
-  return s.phase === 'play' && !s.forced && s.placedThisTurn === 0 && !s.finishOrder.includes(s.turn) && s.specials[s.turn].some(c => c.id === id);
+  return s.phase === 'play' && !s.forced && s.placedThisTurn === 0 && !s.finishOrder.includes(s.turn) && s.specials[s.turn].some(c => c.id === id && c.kind !== 'freePass');
 }
 export function usePointSpecial(s: PointSevensState, id: string, args: { cardId?: string; target?: number } = {}): boolean {
   if (!canUsePointSpecial(s, id)) return false;
@@ -197,18 +214,18 @@ export function usePointSpecial(s: PointSevensState, id: string, args: { cardId?
   }
   s.specials[p] = s.specials[p].filter(c => c.id !== id);
   s.message = `${pointSpecialNames[card.kind]}を使いました。`;
-  if (card.kind === 'freePass') { recordPointPass(s, true); return true; }
-  if (card.kind === 'flip') { s.inverted = !s.inverted; s.message += s.inverted ? '7側＋1点・未接続＋2点。' : '7側＋2点・未接続＋1点。'; }
+    if (card.kind === 'flip') { s.advantage[p] = true; s.message += '次の自分の配置まで、自分は＋2点・他の人は＋1点（得点優位の人を除く）。'; }
   if (card.kind === 'double') { s.doubleReady[p] = true; s.message += '次の自分の手番だけ最大2枚配置できます。'; }
   if (card.kind === 'force') {
-    const forcedCard = s.hands[owner].splice(index, 1)[0]; s.board.push(forcedCard); s.scores[owner] += 2; s.placements[forcedCard.id] = { player: owner, points: 2 };
+    const forcedCard = s.hands[owner].splice(index, 1)[0]; s.board.push(forcedCard); s.scores[owner] += 2; s.placements[forcedCard.id] = { player: owner, points: 2 }; s.advantage[owner] = false; addPointBonus(s,p,2);
     s.consecutivePasses = 0; s.passPlayers = []; s.forced = false;
-    s.message += `${cardLabel(forcedCard)}を即配置して持ち主に＋2点。`; markFinished(s, owner);
+    s.message += `${cardLabel(forcedCard)}を即配置して持ち主に＋2点、使用者に＋2点。`; markFinished(s, owner);
   }
   if (card.kind === 'gift') {
+    addPointBonus(s,p,1);
     const target = args.target!, given = s.hands[p].splice(index, 1)[0]; s.hands[target].push(given);
     s.hands[target].sort((a,b) => sevensSuits.indexOf(a.suit)-sevensSuits.indexOf(b.suit)||a.rank-b.rank);
-    s.message += `${cardLabel(given)}を渡しました。受け取った人は通常手番を消費せず1枚配置できます。`;
+    s.message += `${cardLabel(given)}を渡してボーナス＋1点。受け取った人は通常手番を消費せず1枚配置できます。`;
     markFinished(s, p); s.interrupt = { giver: p, final: activePlayers(s).length === 1 }; s.turn = target; s.phase = 'interrupt'; s.remainingPlays = 1; s.placedThisTurn = 0;
     if (s.interrupt.final) s.message += 'この割り込みが最終1手です。';
     if (!s.hands[target].some(c => pointSevensValue(s.board, c))) returnFromInterrupt(s);
@@ -223,15 +240,11 @@ export function pointSpecialMove(s: PointSevensState): { id: string; args: { car
   const p = s.turn, hand = s.hands[p], legal = hand.filter(c => pointSevensValue(s.board,c));
   for (const special of s.specials[p]) {
     if (special.kind === 'force') {
-      const chosen = hand.filter(c => pointSevensValue(s.board,c,s.inverted) < 2).sort((a,b) => Math.abs(a.rank-7)-Math.abs(b.rank-7))[0];
+      const chosen = hand.filter(c => pointPlacementValue(s,c,p) < 2).sort((a,b) => Math.abs(a.rank-7)-Math.abs(b.rank-7))[0];
       if (chosen) return { id: special.id, args: { cardId: chosen.id } };
     }
-    if (special.kind === 'flip') {
-      const current = hand.reduce((sum,c)=>sum+pointSevensValue(s.board,c,s.inverted),0), flipped = hand.reduce((sum,c)=>sum+pointSevensValue(s.board,c,!s.inverted),0);
-      if (flipped > current + 1) return { id: special.id, args: {} };
-    }
+    if (special.kind === 'flip' && !s.advantage[p]) return { id: special.id, args: {} };
     if (special.kind === 'double' && hand.length >= 2 && (legal.length >= 2 || !legal.length)) return { id: special.id, args: {} };
-    if (special.kind === 'freePass' && !legal.length) return { id: special.id, args: {} };
     if (special.kind === 'gift') {
       const given = hand.find(c => !pointSevensValue(s.board,c));
       const target = activePlayers(s).filter(q=>q!==p).sort((a,b)=>s.hands[b].length-s.hands[a].length||a-b)[0];

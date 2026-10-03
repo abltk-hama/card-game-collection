@@ -73,7 +73,7 @@ test('500対戦: 別の連結探索で採点照合、カード保存、得点内
       if(s.phase==='final')finalMoves++;
       if(canPassPointSevens(s)&&rng()<.15||!id)assert.ok(passPointSevens(s));else assert.ok(playPointSevens(s,id));
       const all=[...s.board,...s.hands.flat()];assert.equal(all.length,52);assert.equal(new Set(all.map(c=>c.id)).size,52);
-      for(let i=0;i<4;i++)assert.equal(s.scores[i],Object.values(s.placements).filter(v=>v.player===i).reduce((sum,v)=>sum+v.points,0)-s.passes[i]-s.penalties[i]);
+      for(let i=0;i<4;i++)assert.equal(s.scores[i],Object.values(s.placements).filter(v=>v.player===i).reduce((sum,v)=>sum+v.points,0)-s.passes[i]+s.freePasses[i]-s.penalties[i]+s.bonuses[i]);
     }
     assert.equal(s.phase,'done');assert.equal(finalMoves,1);assert.equal(new Set(s.finishOrder).size,4);assert.equal(s.hands[s.finishOrder[3]].length,s.penalties[s.finishOrder[3]]);
   }

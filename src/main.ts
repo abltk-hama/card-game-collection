@@ -10,7 +10,7 @@ import { ginView, ginRules } from './gin-view.ts';
 import { createSevens, playSevens, passSevens, sevensMove, type SevensState } from './sevens.ts';
 import { sevensView, sevensRules } from './sevens-view.ts';
 
-import { createPointSevens, playPointSevens, passPointSevens, pointSevensMove, nextPointSevensRound, pointSpecialMove, pointBonusChoice, choosePointSpecial, usePointSpecial, endPointSevensTurn, skipPointInterrupt, type PointSpecialKind, type PointSevensState } from './point-sevens.ts';
+import { pointFixedPoints, createPointSevens, playPointSevens, passPointSevens, pointSevensMove, nextPointSevensRound, pointSpecialMove, pointBonusChoice, choosePointSpecial, usePointSpecial, endPointSevensTurn, skipPointInterrupt, type PointSpecialKind, type PointSevensState } from './point-sevens.ts';
 import { pointSevensView, pointSevensRules, type PointSelection } from './point-sevens-view.ts';
 
 type Game = 'memory' | 'oldmaid' | 'uno' | 'daifugo' | 'gin' | 'sevens' | 'pointSevens';
@@ -131,7 +131,7 @@ function schedule(): void {
       const special = pointSpecialMove(pointSevens);
       if (special) usePointSpecial(pointSevens, special.id, special.args);
       else {
-        const id = pointSevensMove(pointSevens.hands[p], pointSevens.board, { forced: pointSevens.forced || pointSevens.phase !== 'play' || pointSevens.placedThisTurn > 0, lastPassBoardSize: pointSevens.lastPassBoardSize[p], inverted: pointSevens.inverted });
+        const id = pointSevensMove(pointSevens.hands[p], pointSevens.board, { forced: pointSevens.forced || pointSevens.phase !== 'play' || pointSevens.placedThisTurn > 0, lastPassBoardSize: pointSevens.lastPassBoardSize[p], fixedPoints: pointFixedPoints(pointSevens,p) });
         if (id) playPointSevens(pointSevens, id);
         else if (pointSevens.phase === 'interrupt') skipPointInterrupt(pointSevens);
         else if (pointSevens.placedThisTurn > 0) endPointSevensTurn(pointSevens);
