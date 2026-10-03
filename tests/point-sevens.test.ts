@@ -4,7 +4,7 @@ import { deck, type PlayingCard } from '../src/common.ts';
 import { createPointSevens, pointSevensValue, canPassPointSevens, playPointSevens, passPointSevens, pointSevensMove, pointSevensRanking, type PointSevensState } from '../src/point-sevens.ts';
 function seeded(seed: number) { return () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }; }
 function cards(...ids: string[]) { return ids.map(id => deck().find(c => c.id === id)!); }
-function state(hands: string[][]): PointSevensState { return { hands: hands.map(h => cards(...h)), board: cards('♠7','♥7','♦7','♣7'), turn: 0, scores: [0,0,0,0], passes: [0,0,0,0], penalties: [0,0,0,0], finishOrder: [], phase: 'play', consecutivePasses: 0, forced: false, lastPassBoardSize: [-1,-1,-1,-1], placements: {}, message: '' }; }
+function state(hands: string[][]): PointSevensState { return { ...createPointSevens(seeded(1)), hands: hands.map(h => cards(...h)), board: cards('♠7','♥7','♦7','♣7'), turn: 0, scores: [0,0,0,0], passes: [0,0,0,0], penalties: [0,0,0,0], finishOrder: [], phase: 'play', consecutivePasses: 0, forced: false, lastPassBoardSize: [-1,-1,-1,-1], placements: {}, message: '' }; }
 function referenceValue(board: PlayingCard[], card: PlayingCard) {
   if (board.some(c => c.id === card.id)) return 0;
   const same = board.filter(c => c.suit === card.suit);

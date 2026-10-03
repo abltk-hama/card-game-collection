@@ -10,8 +10,8 @@ import { ginView, ginRules } from './gin-view.ts';
 import { createSevens, playSevens, passSevens, sevensMove, type SevensState } from './sevens.ts';
 import { sevensView, sevensRules } from './sevens-view.ts';
 
-import { createPointSevens, playPointSevens, passPointSevens, pointSevensMove, type PointSevensState } from './point-sevens.ts';
-import { pointSevensView, pointSevensRules } from './point-sevens-view.ts';
+import { createPointSevens, playPointSevens, passPointSevens, pointSevensMove, nextPointSevensRound, pointSpecialMove, pointBonusChoice, choosePointSpecial, usePointSpecial, endPointSevensTurn, skipPointInterrupt, type PointSpecialKind, type PointSevensState } from './point-sevens.ts';
+import { pointSevensView, pointSevensRules, type PointSelection } from './point-sevens-view.ts';
 
 type Game = 'memory' | 'oldmaid' | 'uno' | 'daifugo' | 'gin' | 'sevens' | 'pointSevens';
 const root = document.querySelector<HTMLDivElement>('#app')!;
@@ -23,6 +23,7 @@ let daifugo: DaifugoState;
 let gin: GinState;
 let sevens: SevensState;
 let pointSevens: PointSevensState;
+let pointSelection: PointSelection = { specialId: null, cardId: null, target: null };
 let ginSelected: string | null = null;
 let selectedCards: string[] = [];
 let custom = true;
@@ -38,7 +39,7 @@ function later(action: () => void, delay = 800): void {
   const token = generation;
   clearTimeout(timer); timer = setTimeout(() => { if (token === generation) action(); }, delay);
 }
-function reset(): void { generation++; clearTimeout(timer); busy = false; pending = null; selectedColor = null; selectedTarget = null; selectedCards = []; ginSelected = null; }
+function reset(): void { generation++; clearTimeout(timer); busy = false; pending = null; selectedColor = null; selectedTarget = null; selectedCards = []; ginSelected = null; pointSelection = { specialId: null, cardId: null, target: null }; }
 function start(g: Game): void {
   reset(); game = g;
   if (g === 'memory') memory = createMemory();
@@ -111,7 +112,7 @@ function rules(): string {
 }
 function render(): void {
   const handScroll = root.querySelector('.hand')?.scrollLeft ?? 0;
-  root.innerHTML = `<header class="site-header"><button class="brand" data-action="home">♣ <span>ひとやすみカード部</span></button><span class="header-tag">SOLO PLAY</span></header><main>${game ? `<div class="game-header">${button('home', '← ゲーム一覧', 'class="back"')}<span>AI対戦</span><h1>${titles[game]}</h1>${button('restart', 'やり直す', 'class="restart"')}</div><section class="game-board">${game === 'memory' ? memoryView() : game === 'oldmaid' ? oldmaidView() : game === 'daifugo' ? daifugoView() : game === 'gin' ? ginView(gin, ginSelected) : game === 'sevens' ? sevensView(sevens) : game === 'pointSevens' ? pointSevensView(pointSevens) : unoView()}</section>${rules()}` : home()}</main><footer>ひとやすみカード部 <span>PLAY AT YOUR OWN PACE</span></footer>`;
+  root.innerHTML = `<header class="site-header"><button class="brand" data-action="home">♣ <span>ひとやすみカード部</span></button><span class="header-tag">SOLO PLAY</span></header><main>${game ? `<div class="game-header">${button('home', '← ゲーム一覧', 'class="back"')}<span>AI対戦</span><h1>${titles[game]}</h1>${button('restart', 'やり直す', 'class="restart"')}</div><section class="game-board">${game === 'memory' ? memoryView() : game === 'oldmaid' ? oldmaidView() : game === 'daifugo' ? daifugoView() : game === 'gin' ? ginView(gin, ginSelected) : game === 'sevens' ? sevensView(sevens) : game === 'pointSevens' ? pointSevensView(pointSevens, pointSelection) : unoView()}</section>${rules()}` : home()}</main><footer>ひとやすみカード部 <span>PLAY AT YOUR OWN PACE</span></footer>`;
   const handElement = root.querySelector('.hand');
   if (handElement) handElement.scrollLeft = handScroll;
   if (pending !== null) root.querySelector<HTMLButtonElement>('.choice-panel button')?.focus();
@@ -125,8 +126,18 @@ function flip(index: number): void {
 function schedule(): void {
   if (game === 'pointSevens' && pointSevens.phase !== 'done' && pointSevens.turn !== 0) later(() => {
     const p = pointSevens.turn;
-    const id = pointSevensMove(pointSevens.hands[p], pointSevens.board, { forced: pointSevens.forced, lastPassBoardSize: pointSevens.lastPassBoardSize[p] });
-    if (id) playPointSevens(pointSevens, id); else passPointSevens(pointSevens);
+    if (pointSevens.phase === 'choice') choosePointSpecial(pointSevens, pointBonusChoice(pointSevens));
+    else {
+      const special = pointSpecialMove(pointSevens);
+      if (special) usePointSpecial(pointSevens, special.id, special.args);
+      else {
+        const id = pointSevensMove(pointSevens.hands[p], pointSevens.board, { forced: pointSevens.forced || pointSevens.phase !== 'play' || pointSevens.placedThisTurn > 0, lastPassBoardSize: pointSevens.lastPassBoardSize[p], inverted: pointSevens.inverted });
+        if (id) playPointSevens(pointSevens, id);
+        else if (pointSevens.phase === 'interrupt') skipPointInterrupt(pointSevens);
+        else if (pointSevens.placedThisTurn > 0) endPointSevensTurn(pointSevens);
+        else passPointSevens(pointSevens);
+      }
+    }
     render(); schedule();
   });
   if (game === 'sevens' && !sevens.done && sevens.turn !== 0) later(() => {
@@ -172,7 +183,16 @@ root.addEventListener('click', event => {
   if (action === 'start') { start(element.dataset.game as Game); return; }
   if (action === 'restart' && game) { if (window.confirm('現在のゲームを終了して、最初から遊びますか？')) start(game); return; }
   if (busy) return;
+  if (game === 'pointSevens' && action === 'point-next' && pointSevens.phase === 'done') { reset(); pointSevens = nextPointSevensRound(pointSevens); }
   if (game === 'pointSevens' && pointSevens.phase !== 'done' && pointSevens.turn === 0) {
+    if (action === 'point-bonus') choosePointSpecial(pointSevens, element.dataset.kind as PointSpecialKind);
+    if (action === 'point-special') pointSelection = { specialId: element.dataset.id!, cardId: null, target: null };
+    if (action === 'point-card') pointSelection.cardId = element.dataset.id!;
+    if (action === 'point-target') pointSelection.target = Number(element.dataset.target);
+    if (action === 'point-cancel') pointSelection = { specialId: null, cardId: null, target: null };
+    if (action === 'point-use-special' && pointSelection.specialId && usePointSpecial(pointSevens, pointSelection.specialId, { cardId: pointSelection.cardId ?? undefined, target: pointSelection.target ?? undefined })) pointSelection = { specialId: null, cardId: null, target: null };
+    if (action === 'point-end') endPointSevensTurn(pointSevens);
+    if (action === 'point-interrupt-end') skipPointInterrupt(pointSevens);
     if (action === 'point-sevens-play') playPointSevens(pointSevens, element.dataset.id!);
     if (action === 'point-sevens-pass') passPointSevens(pointSevens);
   }

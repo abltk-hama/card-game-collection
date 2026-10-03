@@ -2,39 +2,6 @@
 
 直近10件を保持し、超過分は別名の略歴Markdownへ移す。
 
-## 2026-10-02 — GitHub接続先の登録
-
-### topic
-ユーザー提供リポジトリの接続。
-
-### summary
-- USER_DECISION: 接続先はhttps://github.com/abltk-hama/card-game-collection。
-- CODE_FACT: git ls-remoteは適切な権限で終了コード0、参照の出力なし（確認時点でブランチ・タグなし）。
-- CODE_FACT: originへの登録とgit remote -vによるURL確認を完了。
-- CODE_FACT: push・Pages設定・ゲーム実装は未実施。
-
-### role_logs
-- 運用の観点: ローカルの接続先を登録済み。公開設定は実装後の別工程。
-
-### choices
-- 次の設計候補: UNO風ゲームはプレイヤー1人＋AI3人、交換・シールド・全員ドローの独自カードを設定で有効化。
-- 候補は未採用。特殊効果の細則は別途検討する。
-
-### user_required
-- design_decision: UNO風ゲームの人数と独自カード候補。
-- implementation_approval: ゲーム実装開始指示は未受領。
-- user_validation: なし。
-
-### implementation
-- discussing: 3ゲームの詳細ルール・AI・特殊カード・スマートフォンUI・Pages公開構成。
-- approval_required: なし。
-- user_validation: なし。
-- hold: なし。
-- discarded: なし。
-
-### next_focus
-UNO風ゲームの人数と独自カードを確認し、詳細ルールを整理する。
-
 ## 2026-10-02 — UNO風ゲーム案の合意と初期版詳細候補
 
 ### topic
@@ -442,3 +409,37 @@ UNO風ゲームの人数と独自カードを確認し、詳細ルールを整�
 - CODE_FACT: コミット7e266a6をmainへpush。公開ワークフロー37077733182のbuild・deploy成功。
 - CODE_FACT: 公開URLで7ゲーム一覧とポイント七並べ起動を確認。360px幅の横はみ出しなし、errorログなし。
 - user_validation: 公開版での試遊と公平さの追加検討を継続。
+## 2026-10-03 — ポイント七並べの特殊カードと累計ラウンド
+
+### topic
+特殊カードで配札による得点差と展開を動かす承認案の実装。
+
+### summary
+- USER_DECISION: 「この案で実装して」により実装承認。全員ランダム1枚、前ラウンド最下位に追加選択1枚。通常手札だけで即あがり。
+- USER_DECISION: 得点反転・指定配置（持ち主に固定＋2）・連続配置（使用で手番終了、次の通常手番で最大2枚）・パス免除・持ち札渡し（相手に割り込み配置権）。
+- USER_DECISION: 強制配置・最終手番では特殊不可。渡した側があがって最後の1人なら割り込みが最終1手。
+- ENGINEERING_DECISION: 固定ラウンド数・累計勝利条件は未決定なので「次のラウンドへ」で継続し累計表示。最下位は今回の得点順位で選定。配布は重複可。
+- ENGINEERING_DECISION: 同一盤面でパスした未終了者を集合で数え、全員で強制配置。特殊・割り込みによる順番変更でも重複を数えない。
+- CODE_FACT: 全64テスト、300配札×5ラウンドの特殊カード利用・52枚保存・得点内訳・累計整合、型検査・本番ビルドを確認。
+- CODE_FACT: ブラウザーで得点反転、持ち札渡し、連続配置2枚、終了、累計継続と人間の追加カード選択を確認。360px幅で横はみ出しなし。
+
+### choices
+承認済み5種類を採用。最適戦略・特殊カード導入後の公平さは未評価。
+
+### user_required
+- design_decision: 特殊カードの強さは試遊後に検討。
+- implementation_approval: 受領済み。
+- user_validation: 公開版の特殊カードと複数ラウンドの試遊。
+
+### implementation
+- discussing: 公平さ・特殊カードのバランス。
+- approval_required: なし。
+- user_validation: 特殊カード追加版。
+- hold: なし。
+- discarded: なし。
+
+### next_focus
+公開版の試遊と特殊カードのバランス確認。
+
+### validation_plan
+docs/validation.md参照。新ルールの公平さ・実機操作はNOT_RUN。

@@ -73,3 +73,36 @@ TypeScriptカードゲーム集の初期構成。
 ### next_focus
 リポジトリを用意する場合はURLを確認し、詳細ルールの設計を続ける。
 
+
+## 2026-10-02 — GitHub接続先の登録
+
+### topic
+ユーザー提供リポジトリの接続。
+
+### summary
+- USER_DECISION: 接続先はhttps://github.com/abltk-hama/card-game-collection。
+- CODE_FACT: git ls-remoteは適切な権限で終了コード0、参照の出力なし（確認時点でブランチ・タグなし）。
+- CODE_FACT: originへの登録とgit remote -vによるURL確認を完了。
+- CODE_FACT: push・Pages設定・ゲーム実装は未実施。
+
+### role_logs
+- 運用の観点: ローカルの接続先を登録済み。公開設定は実装後の別工程。
+
+### choices
+- 次の設計候補: UNO風ゲームはプレイヤー1人＋AI3人、交換・シールド・全員ドローの独自カードを設定で有効化。
+- 候補は未採用。特殊効果の細則は別途検討する。
+
+### user_required
+- design_decision: UNO風ゲームの人数と独自カード候補。
+- implementation_approval: ゲーム実装開始指示は未受領。
+- user_validation: なし。
+
+### implementation
+- discussing: 3ゲームの詳細ルール・AI・特殊カード・スマートフォンUI・Pages公開構成。
+- approval_required: なし。
+- user_validation: なし。
+- hold: なし。
+- discarded: なし。
+
+### next_focus
+UNO風ゲームの人数と独自カードを確認し、詳細ルールを整理する。
