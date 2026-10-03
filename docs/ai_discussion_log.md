@@ -420,3 +420,8 @@ docs/validation.md参照。新ルールの公平さ・実機操作はNOT_RUN。
 
 ### next_focus
 公開版で逆転の余地・特殊カードの強さを試遊。
+
+### publication_result
+- CODE_FACT: e0c1d71をmainへpush、Actions 37091025762のbuild・deploy成功。
+- CODE_FACT: 公開版の譲渡ボーナス説明と360px表示、errorログなしを確認。ローカルでは得点優位の併存・本人配置で個別終了も画面操作で確認。
+- user_validation: 公開調整版の逆転頻度・特殊カードの強さを試遊。実機・公平さの比較評価は未実施。
