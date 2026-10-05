@@ -424,3 +424,8 @@ docs/validation.md参照。新ルールの公平さ・実機操作はNOT_RUN。
 
 ### next_focus
 公開版での画面操作とエクスパンドの試遊。
+
+### publication_result
+- CODE_FACT: 実装584139aと追加面2列レイアウト95dc0efをmainへpush。最終Actions 37314833840のbuild・deploy成功。
+- CODE_FACT: 自動承認レビューによるブラウザー拒否があるため、公開URLの画面操作・スクリーンショットは未実施。Actions成功とUI操作確認を区別。
+- user_validation: 公開版の面選択・On/Off・ドロー応答と反射の試遊を依頼。
