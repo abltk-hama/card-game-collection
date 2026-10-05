@@ -204,3 +204,43 @@ UNO風ゲームの人数と独自カードを確認し、詳細ルールを整�
 - PASS: ブラウザーで3ゲームの開始・主要操作、360px設定で横はみ出しなし、本番パス表示。
 - NOT_RUN: 実機スマートフォン、リモートGitHub Actions、Pages公開。
 - PROJECT_AGENT_CONTEXT.mdは更新承認前のため適用時点のまま。更新候補: フェーズ、初期ゲーム、縦画面方針、接続先、選定構成、検証状態。
+
+## 2026-10-02 — GitHub Pages公開承認と設定
+
+### topic
+初期版の公開。
+
+### summary
+- USER_DECISION: 「一旦公開しましょうか」により指定リポジトリへのpushとPages公開を承認。
+- CODE_FACT: 初期実装コミットb66af95をmainへpushし、origin/main追跡を設定。
+- CODE_FACT: GitHub Actionsでテスト12件・型検査・本番ビルド成功。
+- CODE_FACT: 初回公開処理はPages未設定で失敗。既存認証でAPIアカウントを確認し、Pagesをworkflow方式で有効化、失敗した公開処理を再実行。
+- 認証情報は出力・ファイル保存していない。
+
+### role_logs
+- 運用の観点: 公開成功と公開URLの画面確認を待って結果を記録する。
+
+### choices
+採用: GitHub ActionsからGitHub Pagesへ公開。
+
+### user_required
+- design_decision: なし。
+- implementation_approval: 公開工程は承認済み。
+- user_validation: 公開後にスマートフォン実機で確認。
+
+### implementation
+- discussing: なし。
+- approval_required: なし。
+- user_validation: 初期版の実機確認。
+- hold: なし。
+- discarded: なし。
+
+### next_focus
+公開ワークフロー完了と公開URL検証。
+
+### 公開完了の追記
+- CODE_FACT: 公開ワークフロー37004912348のattempt 2でbuild・deployともsuccess。
+- CODE_FACT: https://abltk-hama.github.io/card-game-collection/ の一覧表示と3ゲーム開始を確認。ブラウザーerrorログなし。
+- PASS: GitHub Pages公開と公開URL起動。
+- NOT_RUN: 実機iOS・Androidでのタッチ操作確認。
+- 次の実装案件: 未合意。現在は初期3ゲームと独自カードのuser_validationを待つ。

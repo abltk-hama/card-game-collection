@@ -2,46 +2,6 @@
 
 直近10件を保持し、超過分は別名の略歴Markdownへ移す。
 
-## 2026-10-02 — GitHub Pages公開承認と設定
-
-### topic
-初期版の公開。
-
-### summary
-- USER_DECISION: 「一旦公開しましょうか」により指定リポジトリへのpushとPages公開を承認。
-- CODE_FACT: 初期実装コミットb66af95をmainへpushし、origin/main追跡を設定。
-- CODE_FACT: GitHub Actionsでテスト12件・型検査・本番ビルド成功。
-- CODE_FACT: 初回公開処理はPages未設定で失敗。既存認証でAPIアカウントを確認し、Pagesをworkflow方式で有効化、失敗した公開処理を再実行。
-- 認証情報は出力・ファイル保存していない。
-
-### role_logs
-- 運用の観点: 公開成功と公開URLの画面確認を待って結果を記録する。
-
-### choices
-採用: GitHub ActionsからGitHub Pagesへ公開。
-
-### user_required
-- design_decision: なし。
-- implementation_approval: 公開工程は承認済み。
-- user_validation: 公開後にスマートフォン実機で確認。
-
-### implementation
-- discussing: なし。
-- approval_required: なし。
-- user_validation: 初期版の実機確認。
-- hold: なし。
-- discarded: なし。
-
-### next_focus
-公開ワークフロー完了と公開URL検証。
-
-### 公開完了の追記
-- CODE_FACT: 公開ワークフロー37004912348のattempt 2でbuild・deployともsuccess。
-- CODE_FACT: https://abltk-hama.github.io/card-game-collection/ の一覧表示と3ゲーム開始を確認。ブラウザーerrorログなし。
-- PASS: GitHub Pages公開と公開URL起動。
-- NOT_RUN: 実機iOS・Androidでのタッチ操作確認。
-- 次の実装案件: 未合意。現在は初期3ゲームと独自カードのuser_validationを待つ。
-
 ## 2026-10-02 — 大富豪B案の選択
 
 ### topic
@@ -425,3 +385,42 @@ docs/validation.md参照。新ルールの公平さ・実機操作はNOT_RUN。
 - CODE_FACT: e0c1d71をmainへpush、Actions 37091025762のbuild・deploy成功。
 - CODE_FACT: 公開版の譲渡ボーナス説明と360px表示、errorログなしを確認。ローカルでは得点優位の併存・本人配置で個別終了も画面操作で確認。
 - user_validation: 公開調整版の逆転頻度・特殊カードの強さを試遊。実機・公平さの比較評価は未実施。
+
+## 2026-10-05 — カラーマッチのエクスパンド実装
+
+### topic
+25％の＋付与、数字の面選択、全体On/Offと攻撃の返し・反射。
+
+### summary
+- USER_DECISION: 「これで実装して」で実装承認。対象カードへ独立25％の＋付与、初期Off、＋ワイルドで全体切替。
+- USER_DECISION: 数字は元と異なる色・数字の追加面を出すとき選択し、選んだ面で場を更新。On中の＋ドロー2は3枚、＋スキップは再手番、＋リバースは反転＋次をスキップ。
+- USER_DECISION: On中の＋ドロー4のみ累積攻撃を返せる。返し時に現在色保有制限を免除、通常使用では維持。2同士の積み重ねなし。
+- USER_DECISION: ＋シールドは発動時Onなら最後の攻撃者へ累積枚数を反射。反射はドロー4で返せず、シールド防御のみ、再反射なし、手番は逆戻りしない。
+- USER_DECISION: 最後のドロー攻撃も返し・防御・反射を解決してから勝者確定。独自カードとエクスパンドは別設定。
+- ENGINEERING_DECISION: 設定の初期選択はエクスパンド有効、対戦はOff。交換・全員ドローは付与対象外。既存の全員ドローも＋シールドで使用者へ反射。
+- ENGINEERING_DECISION: 複数人が空になった場合は解決後も空の人のうち先に空になった人を勝者とする。山札不足は引ける枚数を引き攻撃を解決。
+- CODE_FACT: 全83テスト、エクスパンド有効AI1,000対戦、型検査・本番ビルド・差分チェックを実施。
+- CODE_FACT: 自動承認レビューがモデル容量不足で失敗し、localhostのブラウザー操作を拒否。UI操作・表示確認はNOT_RUNで代替ブラウザー等への迂回なし。
+
+### role_logs
+- ルール: 3→7→11枚の返し、Off・＋なしの返し拒否、反射時の勝利取消と終了後操作拒否を確認。
+- AI: 自分の手札と公開情報で追加面・返しを判断。相手手札の内容は参照しない。
+- 表示: On/Off・追加面・攻撃応答・シールド性質を表示。選んだ面を場の表示へ反映。
+
+### choices
+承認されたエクスパンド案を実装。付与率や切替頻度の補正は未採用。
+
+### user_required
+- design_decision: 今回のルールは合意済み。
+- implementation_approval: 受領済み。
+- user_validation: 公開版の追加面・切替・返し・反射の試遊。
+
+### implementation
+- discussing: なし。
+- approval_required: なし。
+- user_validation: エクスパンド追加版の画面とバランス。
+- hold: なし。
+- discarded: シールド反射をドロー4で返す案。
+
+### next_focus
+公開版での画面操作とエクスパンドの試遊。

@@ -6,7 +6,7 @@ import { createUno, unoDeck, playUno, canPlay, drawCards, drawTurn, unoMove, pas
 function seeded(seed: number) { return () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }; }
 const card = (id: number, kind: UnoCard['kind'], color: UnoCard['color'] = null, value?: number): UnoCard => ({ id, kind, color, value });
 function state(): UnoState {
-  return { hands: [[card(1, 'number', 'red', 2)], [card(2, 'number', 'blue', 3)], [card(3, 'number', 'green', 4)], [card(4, 'number', 'yellow', 5)]], drawPile: Array.from({ length: 8 }, (_, i) => card(10 + i, 'number', 'blue', i)), discard: [card(0, 'number', 'red', 1)], color: 'red', turn: 0, direction: 1, shields: [false, false, false, false], winner: null, tie: false, stalls: 0, drawnId: null, message: '' };
+  return { ...createUno(false,seeded(1)), hands: [[card(1, 'number', 'red', 2)], [card(2, 'number', 'blue', 3)], [card(3, 'number', 'green', 4)], [card(4, 'number', 'yellow', 5)]], drawPile: Array.from({ length: 8 }, (_, i) => card(10 + i, 'number', 'blue', i)), discard: [card(0, 'number', 'red', 1)], color: 'red', topValue: 1, turn: 0, direction: 1, shields: [false, false, false, false], winner: null, tie: false, stalls: 0, drawnId: null, message: '' };
 }
 test('神経衰弱: 公開済み記憶でペアを選び、全24枚が終了する', () => {
   const s = createMemory(seeded(1));
@@ -59,7 +59,7 @@ test('ドロー4: 現在色を持っていると出せない', () => {
 test('山札枯渇: 最上段を残して再利用し、補充できない場合は引き分け', () => {
   const s = state(); s.drawPile = []; s.discard.push(card(5, 'number', 'blue', 7));
   assert.equal(drawCards(s, 0, 3, seeded(2)).length, 1); assert.equal(s.discard[0].id, 5);
-  s.discard = [card(6, 'number', 'red', 9)]; s.hands[0] = [card(7, 'number', 'blue', 6)];
+  s.discard = [card(6, 'number', 'red', 9)]; s.topValue=9; s.hands[0] = [card(7, 'number', 'blue', 6)];
   for (let i = 0; i < 4; i++) drawTurn(s);
   assert.equal(s.tie, true);
 });

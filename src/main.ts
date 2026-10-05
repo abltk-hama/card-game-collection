@@ -1,8 +1,9 @@
 import './style.css';
+import { unoRules } from './uno-rules.ts';
 import { names, cardLabel, type PlayingCard } from './common.ts';
 import { createMemory, reveal, resolvePair, memoryMove, type MemoryState } from './memory.ts';
 import { createOldMaid, nextPlayer, takeCard, type OldMaidState } from './oldmaid.ts';
-import { createUno, canPlay, playUno, drawTurn, passUno, unoLabel, unoMove, colors, type Color, type UnoCard, type UnoState } from './uno.ts';
+import { createUno, canPlayUno, acceptUnoAttack, playUno, drawTurn, passUno, unoLabel, unoMove, colors, type Color, type UnoCard, type UnoFace, type UnoState } from './uno.ts';
 import { createDaifugo, nextRound, playDaifugo, passDaifugo, canPlayDaifugo, exchangeCards, daifugoMove, classNames, type DaifugoState } from './daifugo.ts';
 import { createGin, nextGinRound, declineGin, drawGin, discardGin, chooseGinDiscard, shouldTakeGinDiscard, type GinState } from './gin.ts';
 import { ginView, ginRules } from './gin-view.ts';
@@ -27,6 +28,8 @@ let pointSelection: PointSelection = { specialId: null, cardId: null, target: nu
 let ginSelected: string | null = null;
 let selectedCards: string[] = [];
 let custom = true;
+let expandEnabled = true;
+let selectedFace: UnoFace | null = null;
 let pending: number | null = null;
 let selectedColor: Color | null = null;
 let selectedTarget: number | null = null;
@@ -39,12 +42,12 @@ function later(action: () => void, delay = 800): void {
   const token = generation;
   clearTimeout(timer); timer = setTimeout(() => { if (token === generation) action(); }, delay);
 }
-function reset(): void { generation++; clearTimeout(timer); busy = false; pending = null; selectedColor = null; selectedTarget = null; selectedCards = []; ginSelected = null; pointSelection = { specialId: null, cardId: null, target: null }; }
+function reset(): void { generation++; clearTimeout(timer); busy = false; selectedFace = null; pending = null; selectedColor = null; selectedTarget = null; selectedCards = []; ginSelected = null; pointSelection = { specialId: null, cardId: null, target: null }; }
 function start(g: Game): void {
   reset(); game = g;
   if (g === 'memory') memory = createMemory();
   if (g === 'oldmaid') oldmaid = createOldMaid();
-  if (g === 'uno') uno = createUno(custom);
+  if (g === 'uno') uno = createUno(custom,Math.random,expandEnabled);
   if (g === 'daifugo') daifugo = createDaifugo();
   if (g === 'gin') gin = createGin();
   if (g === 'sevens') sevens = createSevens();
@@ -58,8 +61,10 @@ function playingCard(c: PlayingCard): string {
   return `<span class="playing-card ${c.suit === '♥' || c.suit === '♦' ? 'ink-red' : ''}">${cardLabel(c)}</span>`;
 }
 function unoCard(c: UnoCard, index?: number, disabled = false): string {
-  const label = `${c.color ? colorNames[c.color] : 'ワイルド'} ${unoLabel(c)}`;
-  const inside = `<span class="card-corner">${c.color ? colorNames[c.color] : '✦'}</span><strong>${unoLabel(c)}</strong><span class="card-foot">${c.kind === 'number' ? 'NUMBER' : 'ACTION'}</span>`;
+  const expansion = c.expand ? ` ＋エクスパンド${c.kind === 'number' ? `（${colorNames[c.expand.color!]} ${c.expand.value}）` : ''}` : '';
+  const label = `${c.color ? colorNames[c.color] : 'ワイルド'} ${unoLabel(c)}${expansion}`;
+  const activeLabel = game === 'uno' && uno.expanded && c.expand ? c.kind === 'draw2' ? '+3' : c.kind === 'skip' ? '再手番' : c.kind === 'shield' ? '反射' : unoLabel(c) : unoLabel(c);
+  const inside = `<span class="card-corner">${c.color ? colorNames[c.color] : '✦'}</span><strong>${activeLabel}</strong><span class="card-foot">${c.expand ? c.kind === 'number' ? `＋ ${colorNames[c.expand.color!]} ${c.expand.value}` : 'EXPAND＋' : c.kind === 'number' ? 'NUMBER' : 'ACTION'}</span>`;
   return index === undefined ? `<div class="uno-card ${c.color ?? 'wild'}" aria-label="${label}">${inside}</div>` : `<button class="uno-card ${c.color ?? 'wild'}" data-action="play" data-index="${index}" aria-label="${label}" ${disabled ? 'disabled' : ''}>${inside}</button>`;
 }
 function home(): string {
@@ -71,10 +76,10 @@ function home(): string {
     <button class="game-tile" data-action="start" data-game="gin"><span class="tile-icon teal">♥</span><span><small>05 / GIN RUMMY</small><strong>ジンラミー</strong><em>組をつくって、ノックの勝負。</em><i>100点先取 · AIと1対1</i></span><b>↗</b></button>
     <button class="game-tile" data-action="start" data-game="sevens"><span class="tile-icon terracotta">7</span><span><small>06 / SEVENS</small><strong>七並べ</strong><em>つないで、待って、先にあがろう。</em><i>パス3回まで · AI3人</i></span><b>↗</b></button>
     <button class="game-tile" data-action="start" data-game="pointSevens"><span class="tile-icon points">+2</span><span><small>07 / POINT SEVENS</small><strong>ポイント七並べ</strong><em>止めるか、つなぐか。点数で勝負。</em><i>独自ルール · AI3人</i></span><b>↗</b></button>
-  </div><label class="custom-option"><span><strong>カラーマッチの独自カード</strong><small>交換 / シールド / 全員ドロー</small></span><input id="custom" type="checkbox" ${custom ? 'checked' : ''} aria-label="独自カードを使う"></label><div class="home-note">✦ 登録なし。AI対戦はブラウザーの中で。</div></div>`;
+  </div><label class="custom-option"><span><strong>カラーマッチの独自カード</strong><small>交換 / シールド / 全員ドロー</small></span><input id="custom" type="checkbox" ${custom ? 'checked' : ''} aria-label="独自カードを使う"></label><label class="custom-option"><span><strong>エクスパンド</strong><small>対象カードの25％に＋効果</small></span><input id="expand" type="checkbox" ${expandEnabled ? 'checked' : ''} aria-label="エクスパンドを使う"></label><div class="home-note">✦ 登録なし。AI対戦はブラウザーの中で。</div></div>`;
 }
-function opponents(counts: number[], turn: number, shields?: boolean[]): string {
-  return `<div class="opponents">${counts.slice(1).map((count, i) => `<div class="opponent ${turn === i + 1 ? 'active' : ''}"><div class="avatar">${['S', 'M', 'R'][i]}</div><strong>${names[i + 1]}</strong><span>${count ? `${count}枚` : 'あがり'}${shields?.[i + 1] ? ' · 🛡' : ''}</span></div>`).join('')}</div>`;
+function opponents(counts: number[], turn: number, shields?: boolean[], shieldPlus?: boolean[]): string {
+  return `<div class="opponents">${counts.slice(1).map((count, i) => `<div class="opponent ${turn === i + 1 ? 'active' : ''}"><div class="avatar">${['S', 'M', 'R'][i]}</div><strong>${names[i + 1]}</strong><span>${count ? `${count}枚` : 'あがり'}${shields?.[i + 1] ? ` · 🛡${shieldPlus?.[i+1]?'＋':''}` : ''}</span></div>`).join('')}</div>`;
 }
 function result(text: string): string { return `<div class="result" role="status"><small>GAME FINISHED</small><h2>${text}</h2>${button('restart', 'もう一度遊ぶ', 'class="primary"')}${button('home', 'ゲームを選ぶ', 'class="secondary"')}</div>`; }
 function memoryView(): string {
@@ -91,11 +96,12 @@ function oldmaidView(): string {
 function unoView(): string {
   const s = uno, done = s.winner !== null || s.tie, human = s.turn === 0 && !done && !busy;
   const top = s.discard[s.discard.length - 1];
-  return `${opponents(s.hands.map(h => h.length), s.turn, s.shields)}<div class="status" role="status">${done ? '勝負が決まりました。' : `${names[s.turn]}の番 · ${s.message}`}</div><div class="uno-table"><div><small>山札 ${s.drawPile.length}枚</small>${button('draw', '♣<span>1枚引く</span>', 'class="card-back draw-pile"', !human || s.drawnId !== null || pending !== null)}</div><div><small>場のカード</small>${unoCard(top)}</div></div><div class="color-status"><span class="color-dot ${s.color}"></span>今の色：${colorNames[s.color]} <span>${s.direction === 1 ? '時計回り ↻' : '反時計回り ↺'}</span></div><div class="hand-heading">あなたの手札 <span>${s.hands[0].length}枚${s.shields[0] ? ' · 🛡 防御中' : ''}</span></div><div class="hand uno-hand">${s.hands[0].map((c, i) => unoCard(c, i, !human || pending !== null || (s.drawnId !== null && c.id !== s.drawnId) || !canPlay(c, s.hands[0], top, s.color))).join('')}</div>${s.drawnId !== null && human ? button('pass', '出さずに手番を終了', 'class="secondary wide"', pending !== null) : ''}<p class="hint">手札は横にスワイプできます · 明るいカードが出せます</p>${done ? result(s.tie ? '引き分け！' : `${names[s.winner!]}の勝ち！`) : ''}${pending !== null ? choicesView() : ''}`;
+  const shownTop = top.kind === 'number' ? {...top,color:s.color,value:s.topValue??top.value,expand:top.expand&&s.topValue!==top.value?{color:top.color!,value:top.value}:top.expand} : top;
+  return `${opponents(s.hands.map(h => h.length), s.turn, s.shields, s.shieldPlus)}<div class="status" role="status">${done ? '勝負が決まりました。' : `${names[s.turn]}の番 · ${s.message}`}</div><div class="uno-table"><div><small>山札 ${s.drawPile.length}枚</small>${button('draw', '♣<span>1枚引く</span>', 'class="card-back draw-pile"', !!s.attack || !human || s.drawnId !== null || pending !== null)}</div><div><small>場のカード</small>${unoCard(shownTop)}</div></div><div class="color-status"><span class="color-dot ${s.color}"></span>今の色：${colorNames[s.color]}${s.topValue!==null?` · 数字${s.topValue}`:''} <span>${s.direction === 1 ? '時計回り ↻' : '反時計回り ↺'}</span></div><p class="hint">エクスパンド：${s.expandEnabled?s.expanded?'On':'Off':'無効'} · ＋印のカードに追加効果</p>${s.attack ? `<div class="expand-attack"><strong>ドロー攻撃 ${s.attack.count}枚</strong><p>On中の＋ドロー4で返すか、攻撃を受けます。${s.shields[s.turn]?'シールドは受けるときに発動します。':''}</p>${button('accept-attack',s.shields[0]?s.expanded&&s.shieldPlus[0]?'シールドで反射':'シールドで防ぐ':`${s.attack.count}枚引いて手番を休む`,'class="primary wide"',!human||pending!==null)}</div>` : ''}<div class="hand-heading">あなたの手札 <span>${s.hands[0].length}枚${s.shields[0] ? s.shieldPlus[0] ? ' · 🛡＋ 防御中' : ' · 🛡 防御中' : ''}</span></div><div class="hand uno-hand">${s.hands[0].map((c, i) => unoCard(c, i, !human || pending !== null || (s.drawnId !== null && c.id !== s.drawnId) || !canPlayUno(s,c))).join('')}</div>${s.drawnId !== null && human ? button('pass', '出さずに手番を終了', 'class="secondary wide"', pending !== null) : ''}<p class="hint">手札は横にスワイプできます · 明るいカードが出せます</p>${done ? result(s.tie ? '引き分け！' : `${names[s.winner!]}の勝ち！`) : ''}${pending !== null ? choicesView() : ''}`;
 }
 function choicesView(): string {
-  const card = uno.hands[0][pending!];
-  return `<div class="choice-panel" role="dialog" aria-modal="true" aria-labelledby="choice-title"><h2 id="choice-title">${unoLabel(card)}を使う</h2><p>次の色を選んでください</p><div class="color-choices">${colors.map(c => button('color', colorNames[c], `class="${c} ${selectedColor === c ? 'selected' : ''}" data-color="${c}" aria-pressed="${selectedColor === c}"`)).join('')}</div>${card.kind === 'swap' ? `<p>交換する相手</p><div class="target-choices">${[1, 2, 3].map(p => button('target', `${names[p]} (${uno.hands[p].length}枚)`, `data-target="${p}" class="${selectedTarget === p ? 'selected' : ''}" aria-pressed="${selectedTarget === p}"`)).join('')}</div>` : ''}${button('confirm', 'このカードを出す', 'class="primary wide"', !selectedColor || (card.kind === 'swap' && selectedTarget === null))}${button('cancel', 'キャンセル', 'class="secondary wide"')}</div>`;
+  const card = uno.hands[0][pending!], numeric = card.kind === 'number';
+  return `<div class="choice-panel" role="dialog" aria-modal="true" aria-labelledby="choice-title"><h2 id="choice-title">${unoLabel(card)}を使う</h2>${numeric ? `<p>出す色・数字を選んでください</p><div class="color-choices">${(['base','expand'] as const).map(face=>button('face',face==='base'?`${colorNames[card.color!]} ${card.value}（元の面）`:`${colorNames[card.expand!.color!]} ${card.expand!.value}（追加面）`,`data-face="${face}" class="${selectedFace===face?'selected':''}" aria-pressed="${selectedFace===face}"`,!canPlayUno(uno,card,face))).join('')}</div>` : `<p>次の色を選んでください</p><div class="color-choices">${colors.map(c=>button('color',colorNames[c],`class="${c} ${selectedColor===c?'selected':''}" data-color="${c}" aria-pressed="${selectedColor===c}"`)).join('')}</div>`}${card.kind === 'swap' ? `<p>交換する相手</p><div class="target-choices">${[1,2,3].map(p=>button('target',`${names[p]} (${uno.hands[p].length}枚)`,`data-target="${p}" class="${selectedTarget===p?'selected':''}" aria-pressed="${selectedTarget===p}"`)).join('')}</div>` : ''}${button('confirm','このカードを出す','class="primary wide"',numeric?!selectedFace:!selectedColor||(card.kind==='swap'&&selectedTarget===null))}${button('cancel','キャンセル','class="secondary wide"')}</div>`;
 }
 function daifugoView(): string {
   const s = daifugo;
@@ -107,7 +113,7 @@ function daifugoView(): string {
   return `<div class="round-heading"><strong>ROUND ${s.round}</strong><span>${s.revolution ? '革命中 · 3が最強' : '通常 · 2が最強'}</span></div><div class="opponents">${[1, 2, 3].map(p => `<div class="opponent ${s.phase === 'play' && s.turn === p ? 'active' : ''}"><div class="avatar">${['S', 'M', 'R'][p - 1]}</div><strong>${names[p]}</strong><span>${p === s.fallen ? '都落ち' : s.order.includes(p) ? `${s.order.indexOf(p) + 1}位あがり` : `${s.hands[p].length}枚${s.passed[p] ? ' · パス' : ''}`}</span><small>${s.previousOrder.length ? classNames[s.previousOrder.indexOf(p)] : '平民'}</small></div>`).join('')}</div><div class="status" role="status">${s.phase === 'done' ? s.message : s.phase === 'exchange' ? `カード交換 · ${s.message}` : `${names[s.turn]}の番 · ${s.message}`}</div><div class="daifugo-table"><small>${s.phase === 'exchange' ? `前回の${humanClass}として、${classNames[3 - s.previousOrder.indexOf(0)]}に渡すカードを選ぼう` : s.table.length ? `場のカード · ${s.table.length}枚` : '場は空です · 好きな数字から出せます'}</small><div class="table-cards">${s.table.length ? s.table.map(playingCard).join('') : '<span class="table-symbol">♦</span>'}</div></div><div class="hand-heading">あなたの手札 <span>${s.fallen === 0 ? '都落ち' : ownPosition >= 0 ? `${ownPosition + 1}位あがり` : `${s.hands[0].length}枚 · ${humanClass}`}</span></div><div class="hand daifugo-hand">${s.hands[0].map(c => button('select-daifugo', `<span>${cardLabel(c)}</span>`, `class="playing-card ${c.suit === '♥' || c.suit === '♦' ? 'ink-red' : ''} ${selectedCards.includes(c.id) ? 'chosen' : ''}" data-id="${c.id}" aria-label="${cardLabel(c)}" aria-pressed="${selectedCards.includes(c.id)}"`, !selecting || busy)).join('') || '<p>残りの対戦を見守ろう。</p>'}</div>${s.phase !== 'done' ? `<div class="daifugo-actions">${button(s.phase === 'exchange' ? 'exchange-daifugo' : 'submit-daifugo', s.phase === 'exchange' ? `${selectedCards.length}/${s.exchangeCount}枚 · 交換する` : `${selectedCards.length}枚 · 出す`, 'class="primary"', !canSubmit)}${s.phase === 'play' ? button('pass-daifugo', 'パス', 'class="secondary"', !selecting || !s.table.length) : ''}${button('clear-selection', '選択解除', 'class="secondary"', !selectedCards.length)}</div><p class="hint">手札は横にスワイプ · 複数選んでから確定</p>` : ''}${ranks}`;
 }
 function rules(): string {
-  const text = game === 'pointSevens' ? pointSevensRules : game === 'sevens' ? sevensRules : game === 'gin' ? ginRules : game === 'daifugo' ? '52枚・ジョーカーなし。通常は3→4→5→6→7→8→9→10→J→Q→K→A→2の順に強く、同じ数字1〜4枚を出します。場と同じ枚数で強い数字を出してください。4枚で革命、強さが反転し、再革命で戻ります。8で場を流し、出した人から再開（あがったら次の人）。パスすると場が流れるまで参加できません。前回の大富豪が最初にあがれなければ即都落ちし最下位です。2ラウンド目以降は大富豪と大貧民で2枚、富豪と貧民で1枚を交換。下位は通常順で最強、上位は任意カードを渡します。初回はダイヤ3の持ち主から、以降は前回の大貧民から開始。革命は毎ラウンドリセット。階段・縛り・11バック・あがり禁止はありません。' : game === 'memory' ? '24枚から同じ数字のペアを探します。ペアができたら続けてめくれます。獲得ペアが多い人の勝ち。AIは公開されたカードを覚えます。' : game === 'oldmaid' ? '同じ数字をペアで捨て、次の相手から1枚引きます。手札がなくなればあがり。最後にジョーカーを持った人が負けです。' : '色か数字・記号が同じカードを出します。引いた1枚が出せる場合は出すか終了を選べます。+2・+4は次の人が引いて手番を休み、積み重ねはできません。+4は今の色が手札にない場合だけ使えます。UNO宣言・チャレンジはありません。交換は相手と残りの手札を交換。防御はドローを1回防ぎます（手番の休みは防ぎません）。全員+1は自分以外が1枚引きます。効果処理後に手札が0枚なら勝ち。山札が枯れたら捨て札を再利用します。';
+  const text = game === 'pointSevens' ? pointSevensRules : game === 'sevens' ? sevensRules : game === 'gin' ? ginRules : game === 'daifugo' ? '52枚・ジョーカーなし。通常は3→4→5→6→7→8→9→10→J→Q→K→A→2の順に強く、同じ数字1〜4枚を出します。場と同じ枚数で強い数字を出してください。4枚で革命、強さが反転し、再革命で戻ります。8で場を流し、出した人から再開（あがったら次の人）。パスすると場が流れるまで参加できません。前回の大富豪が最初にあがれなければ即都落ちし最下位です。2ラウンド目以降は大富豪と大貧民で2枚、富豪と貧民で1枚を交換。下位は通常順で最強、上位は任意カードを渡します。初回はダイヤ3の持ち主から、以降は前回の大貧民から開始。革命は毎ラウンドリセット。階段・縛り・11バック・あがり禁止はありません。' : game === 'memory' ? '24枚から同じ数字のペアを探します。ペアができたら続けてめくれます。獲得ペアが多い人の勝ち。AIは公開されたカードを覚えます。' : game === 'oldmaid' ? '同じ数字をペアで捨て、次の相手から1枚引きます。手札がなくなればあがり。最後にジョーカーを持った人が負けです。' : unoRules;
   return `<details class="rules"><summary>遊び方を見る</summary><p>${text}</p></details>`;
 }
 function render(): void {
@@ -168,13 +174,13 @@ function schedule(): void {
     takeCard(oldmaid, Math.floor(Math.random() * count)); render(); schedule();
   });
   if (game === 'uno' && uno.winner === null && !uno.tie && uno.turn !== 0) later(() => {
-    const move = unoMove(uno.hands[uno.turn], uno.discard[uno.discard.length - 1], uno.color, uno.hands.map(h => h.length), uno.turn, uno.drawnId);
-    if (move.index !== undefined) playUno(uno, move.index, move.color, move.target);
-    else if (uno.drawnId !== null) passUno(uno); else drawTurn(uno);
+    const move = unoMove(uno.hands[uno.turn], uno.discard[uno.discard.length - 1], uno.color, uno.hands.map(h => h.length), uno.turn, uno.drawnId, uno);
+    if (move.index !== undefined) playUno(uno, move.index, move.color, move.target, Math.random, move.face);
+    else if (uno.attack) acceptUnoAttack(uno); else if (uno.drawnId !== null) passUno(uno); else drawTurn(uno);
     render(); schedule();
   });
 }
-root.addEventListener('change', event => { if ((event.target as HTMLElement).id === 'custom') custom = (event.target as HTMLInputElement).checked; });
+root.addEventListener('change', event => { const input=event.target as HTMLInputElement; if(input.id==='custom')custom=input.checked;if(input.id==='expand')expandEnabled=input.checked; });
 root.addEventListener('click', event => {
   const element = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
   if (!element || element.disabled) return;
@@ -226,16 +232,19 @@ root.addEventListener('click', event => {
   if (game === 'uno' && uno.turn === 0) {
     if (action === 'play') {
       const card = uno.hands[0][index];
-      if (card.color === null) { pending = index; selectedColor = null; selectedTarget = null; }
+      if (!canPlayUno(uno,card)) return;
+      if (card.color === null || uno.expanded && card.kind==='number' && card.expand) { pending = index; selectedColor = null; selectedTarget = null; selectedFace = null; }
       else playUno(uno, index);
     }
+    if (action === 'accept-attack') acceptUnoAttack(uno);
     if (action === 'draw') drawTurn(uno);
     if (action === 'pass') passUno(uno);
+    if (action === 'face') selectedFace=element.dataset.face as UnoFace;
     if (action === 'color') selectedColor = element.dataset.color as Color;
     if (action === 'target') selectedTarget = Number(element.dataset.target);
     if (action === 'cancel') pending = null;
-    if (action === 'confirm' && pending !== null && selectedColor) {
-      if (playUno(uno, pending, selectedColor, selectedTarget ?? undefined)) pending = null;
+    if (action === 'confirm' && pending !== null && (selectedColor || selectedFace)) {
+      if (playUno(uno, pending, selectedColor ?? undefined, selectedTarget ?? undefined, Math.random, selectedFace ?? 'base')) pending = null;
     }
   }
   render(); schedule();
