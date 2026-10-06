@@ -399,3 +399,7 @@ docs/validation.md参照。新ルールの公平さ・実機操作はNOT_RUN。
 
 ### next_focus
 公開版でターゲットと付与率を試遊。
+
+### publication_result
+- CODE_FACT: d19d1a0をmainへpush、Actions 37472396985成功。公開版の設定とSVG記号表示を確認。ローカルで360px表示を確認。
+- user_validation: 記号の判別しやすさ・ターゲットのバランスを試遊。
