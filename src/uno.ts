@@ -1,7 +1,7 @@
 import { shuffle, type Random } from './common.ts';
 export const colors = ['red', 'yellow', 'green', 'blue'] as const;
 export type Color = typeof colors[number];
-export type Kind = 'number' | 'skip' | 'reverse' | 'draw2' | 'wild' | 'draw4' | 'swap' | 'shield' | 'all';
+export type Kind = 'number' | 'skip' | 'reverse' | 'draw2' | 'wild' | 'draw4' | 'swap' | 'shield' | 'all' | 'target';
 export interface UnoCard { id: number; color: Color | null; kind: Kind; value?: number; expand?: { color?: Color; value?: number }; }
 export interface UnoState {
   hands: UnoCard[][]; drawPile: UnoCard[]; discard: UnoCard[]; color: Color;
@@ -10,7 +10,8 @@ export interface UnoState {
   attack: { count: number; source: number } | null; finishCandidates: number[];
   tie: boolean; stalls: number; drawnId: number | null; message: string;
 }
-export function unoDeck(custom: boolean, expandEnabled = false, random: Random = Math.random): UnoCard[] {
+export function unoDeck(custom: boolean, expandEnabled = false, random: Random = Math.random, expandRate = 25): UnoCard[] {
+  if (!Number.isFinite(expandRate) || expandRate < 0 || expandRate > 100 || expandRate % 5 !== 0) throw new RangeError('Invalid Expand rate');
   const cards: UnoCard[] = [];
   const add = (color: Color | null, kind: Kind, value?: number) => cards.push({ id: cards.length, color, kind, value });
   for (const color of colors) {
@@ -21,9 +22,9 @@ export function unoDeck(custom: boolean, expandEnabled = false, random: Random =
     }
   }
   for (let i = 0; i < 4; i++) { add(null, 'wild'); add(null, 'draw4'); }
-  if (custom) for (let i = 0; i < 2; i++) for (const kind of ['swap', 'shield', 'all'] as const) add(null, kind);
+  if (custom) for (let i = 0; i < 2; i++) for (const kind of ['swap', 'shield', 'all', 'target'] as const) add(null, kind);
   if (expandEnabled) for (const card of cards) {
-    if (['swap','all'].includes(card.kind) || random() >= .25) continue;
+    if (card.kind === 'swap' || random() >= expandRate / 100) continue;
     if (card.kind === 'number') {
       const otherColors = colors.filter(c=>c!==card.color);
       const values = Array.from({length:10},(_,i)=>i).filter(v=>v!==card.value);
@@ -32,8 +33,8 @@ export function unoDeck(custom: boolean, expandEnabled = false, random: Random =
   }
   return cards;
 }
-export function createUno(custom: boolean, random: Random = Math.random, expandEnabled = false): UnoState {
-  const pile = shuffle(unoDeck(custom, expandEnabled, random), random);
+export function createUno(custom: boolean, random: Random = Math.random, expandEnabled = false, expandRate = 25): UnoState {
+  const pile = shuffle(unoDeck(custom, expandEnabled, random, expandRate), random);
   const hands = Array.from({ length: 4 }, () => pile.splice(0, 7));
   const start = pile.findIndex(c => c.kind === 'number');
   const first = pile.splice(start, 1)[0];
@@ -77,7 +78,7 @@ function applyAttack(s: UnoState, player: number, count: number, source: number,
     const drawn = drawCards(s,player,count,random).length;
     return `${count}枚の攻撃を受けて${drawn}枚引きました。`;
   }
-  const reflects = s.expanded && s.shieldPlus[player];
+  const reflects = player !== source && s.expanded && s.shieldPlus[player];
   s.shields[player] = false; s.shieldPlus[player] = false;
   if (!reflects) return 'シールドで防ぎました。';
   if (s.shields[source]) { s.shields[source] = false; s.shieldPlus[source] = false; return `${count}枚を反射し、攻撃者もシールドで防ぎました。`; }
@@ -104,7 +105,7 @@ export function playUno(s: UnoState, index: number, chosenColor?: Color, target?
   const player = s.turn, hand = s.hands[player], card = hand[index];
   if (!card || !canPlayUno(s,card,face)) return false;
   if (card.color === null && (!chosenColor || !colors.includes(chosenColor))) return false;
-  if (card.kind === 'swap' && (target === undefined || !Number.isInteger(target) || target < 0 || target > 3 || target === player)) return false;
+  if ((card.kind === 'swap' || card.kind === 'target') && (target === undefined || !Number.isInteger(target) || target < 0 || target > 3 || card.kind === 'swap' && target === player)) return false;
   hand.splice(index,1); s.discard.push(card);
   s.color = (face === 'expand' ? card.expand!.color : card.color) ?? chosenColor!;
   s.topValue = card.kind === 'number' ? (face === 'expand' ? card.expand!.value! : card.value!) : null;
@@ -129,10 +130,11 @@ export function playUno(s: UnoState, index: number, chosenColor?: Color, target?
     } else { s.message += ' '+applyAttack(s,(player+s.direction+4)%4,count,player,random); steps = 2; }
   }
   if (card.kind === 'shield') { s.shields[player] = true; s.shieldPlus[player] = !!card.expand; }
-  if (card.kind === 'all') for (let p=0;p<4;p++) if (p!==player) s.message += ' '+applyAttack(s,p,1,player,random);
+  if (card.kind === 'all') for (let p=0;p<4;p++) if (p!==player) s.message += ' '+applyAttack(s,p,enhanced?2:1,player,random);
   if (card.kind === 'swap') [s.hands[player],s.hands[target!]] = [s.hands[target!],s.hands[player]];
+  if (card.kind === 'target' && enhanced) s.message += ' '+applyAttack(s,target!,1,player,random);
   finishUno(s,player,card.kind==='swap'?target:undefined);
-  if (s.winner === null) advance(s,steps);
+  if (s.winner === null) { if (card.kind === 'target') { s.turn = target!; s.drawnId = null; } else advance(s,steps); }
   return true;
 }
 export function drawTurn(s: UnoState, random: Random = Math.random): boolean {
@@ -158,7 +160,7 @@ export function passUno(s: UnoState): boolean {
   s.message = '引いたカードを手札に残しました。'; advance(s); return true;
 }
 export function unoLabel(card: UnoCard): string {
-  return card.kind === 'number' ? String(card.value) : ({ skip: 'SKIP', reverse: '↔', draw2: '+2', wild: 'COLOR', draw4: '+4', swap: '交換', shield: '防御', all: '全員+1' })[card.kind];
+  return card.kind === 'number' ? String(card.value) : ({ skip: 'SKIP', reverse: '↔', draw2: '+2', wild: 'COLOR', draw4: '+4', swap: '交換', shield: '防御', all: '全員+1', target: 'ターゲット' })[card.kind];
 }
 // AIの判断材料は自身の手札・場・公開されている枚数のみ。
 export function unoMove(hand: readonly UnoCard[], top: UnoCard, color: Color, counts: readonly number[], player: number, drawnId: number | null, state?: UnoState) {
@@ -167,6 +169,6 @@ export function unoMove(hand: readonly UnoCard[], top: UnoCard, color: Color, co
   const chosenColor = [...colors].sort((a, b) => hand.filter(c => c.color === b).length - hand.filter(c => c.color === a).length)[0];
   const target = counts.map((count, i) => ({ count, i })).filter(p => p.i !== player).sort((a, b) => a.count - b.count)[0].i;
   const face: UnoFace = index !== undefined && state && !canPlayUno(state,hand[index],'base') ? 'expand' : 'base';
-  return { index, color: chosenColor, target, face };
+  return { index, color: chosenColor, target: index !== undefined && hand[index].kind === 'target' ? player : target, face };
 }
 

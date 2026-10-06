@@ -33,8 +33,8 @@ test('ババ抜き: 100通りの配札から終了し、ジョーカーだけが
   }
 });
 test('UNO風: 独自カードのオン・オフとカード枚数', () => {
-  assert.equal(unoDeck(false).length, 108); assert.equal(unoDeck(true).length, 114);
-  assert.ok(unoDeck(false).every(c => !['swap', 'shield', 'all'].includes(c.kind)));
+  assert.equal(unoDeck(false).length, 108); assert.equal(unoDeck(true).length, 116);
+  assert.ok(unoDeck(false).every(c => !['swap', 'shield', 'all', 'target'].includes(c.kind)));
 });
 test('交換: 最後の1枚を出しても、交換後に手札があれば勝てない', () => {
   const s = state(); s.hands[0] = [card(1, 'swap')];
@@ -80,7 +80,7 @@ test('引いたカード: 他の手札は出せず、出すか終了を選べる
 });
 test('UNO風: 100対戦で合法手・カード総数・終了を確認', () => {
   for (let seed = 1; seed <= 100; seed++) {
-    const random = seeded(seed), s = createUno(seed % 2 === 0, random), total = seed % 2 === 0 ? 114 : 108;
+    const random = seeded(seed), s = createUno(seed % 2 === 0, random), total = seed % 2 === 0 ? 116 : 108;
     let moves = 0;
     while (s.winner === null && !s.tie && moves++ < 20000) {
       const choice = unoMove(s.hands[s.turn], s.discard.at(-1)!, s.color, s.hands.map(h => h.length), s.turn, s.drawnId);

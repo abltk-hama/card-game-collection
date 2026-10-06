@@ -9,3 +9,5 @@
 .expand-attack{border:1px solid var(--gold,#c5a86a);border-radius:14px;padding:16px;margin:16px 0}.expand-attack p{font-size:13px;line-height:1.7}.uno-card .card-foot{white-space:normal;font-size:10px}
 
 .face-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.face-choices button{min-height:64px;padding:10px;border-radius:9px;background:#e9e7da;font-size:12px;line-height:1.6;white-space:normal}.color-status{flex-wrap:wrap}
+.uno-card{position:relative}.uno-symbol{width:42px;height:42px;flex-shrink:0}.uno-card strong.action-label{font-size:11px;line-height:1.3}.expand-badge{position:absolute;right:5px;top:5px;font-size:14px;font-weight:900;border:1px solid currentColor;border-radius:50%;width:19px;height:19px;display:grid;place-items:center;line-height:1}.expand-rate{padding:4px 2px 20px}.expand-rate label{display:flex;justify-content:space-between;font-size:12px;font-weight:700}.expand-rate input{width:100%;min-height:44px;accent-color:var(--green)}.expand-rate small{font-size:10px;color:var(--muted)}.target-choices{flex-wrap:wrap}.target-choices button{min-width:40%}
+.uno-card .card-foot{white-space:nowrap;font-size:9px}
